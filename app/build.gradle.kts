@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.custom_launcher_app"
-        minSdk = 31
+        minSdk = 29
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
