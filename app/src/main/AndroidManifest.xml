@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest package="SoraMetca.yet_another_launcher"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
@@ -11,18 +12,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Custom_launcher_app">
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name="sorametca.yet_another_launcher.activity.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.Custom_launcher_app" />
         <activity
-            android:name=".activity.AppDrawerActivity"
+            android:name="sorametca.yet_another_launcher.activity.AppDrawerActivity"
             android:exported="false"
             android:theme="@style/Theme.Custom_launcher_app" />
         <activity
-            android:name=".activity.MainActivity"
+            android:name="sorametca.yet_another_launcher.activity.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Custom_launcher_app">
+            android:theme="@style/Theme.Custom_launcher_app"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

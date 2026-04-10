@@ -5,13 +5,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.custom_launcher_app"
+    namespace = "com.sorametca.yet_another_launcher"
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "com.example.custom_launcher_app"
+        applicationId = "com.sorametca.yet_another_launcher"
         minSdk = 29
         targetSdk = 36
         versionCode = 1

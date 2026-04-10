@@ -1,8 +1,8 @@
-package com.example.custom_launcher_app.activity
+package com.sorametca.yet_another_launcher.activity
 
 import android.app.Activity
 import android.os.Bundle
-import com.example.custom_launcher_app.R
+import com.sorametca.yet_another_launcher.R
 
 class SettingsActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,4 +1,4 @@
-package com.example.custom_launcher_app
+package com.sorametca.yet_another_launcher
 
 import org.junit.Test
 

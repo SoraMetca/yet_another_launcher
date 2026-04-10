@@ -4,7 +4,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.SettingsActivity">
+    tools:context="SoraMetca.yet_another_launcher.activity.SettingsActivity">
 
     <FrameLayout
         android:layout_width="409dp"

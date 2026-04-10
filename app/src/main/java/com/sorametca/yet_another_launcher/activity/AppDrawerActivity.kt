@@ -1,9 +1,9 @@
-package com.example.custom_launcher_app.activity
+package com.sorametca.yet_another_launcher.activity
 
 import android.content.Intent
 import android.os.Bundle
-import com.example.custom_launcher_app.OnSwipeListener
-import com.example.custom_launcher_app.R
+import com.sorametca.yet_another_launcher.OnSwipeListener
+import com.sorametca.yet_another_launcher.R
 
 class AppDrawerActivity : OnSwipeListener() {
     override fun onCreate(savedInstanceState: Bundle?) {
