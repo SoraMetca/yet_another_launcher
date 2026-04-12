@@ -17,20 +17,20 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/imageButton3"
+        android:id="@+id/popup_menu_drawer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="38dp"
         android:layout_marginEnd="19dp"
-        android:layout_marginBottom="4dp"
-        app:layout_constraintBottom_toBottomOf="@+id/textInputEditText4"
+        android:layout_marginBottom="139dp"
+        app:layout_constraintBottom_toTopOf="@+id/_dynamic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textInputEditText4"
-        app:layout_constraintTop_toTopOf="@+id/textInputEditText4"
+        app:layout_constraintStart_toEndOf="@+id/search_input"
+        app:layout_constraintTop_toTopOf="parent"
         tools:srcCompat="@drawable/m3_split_button_chevron_avd" />
 
     <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/textInputEditText4"
+        android:id="@+id/search_input"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
@@ -39,8 +39,18 @@
         android:backgroundTint="#737373"
         android:hint="hint"
         android:textColor="@color/white"
-        app:layout_constraintEnd_toStartOf="@+id/imageButton3"
+        app:layout_constraintEnd_toStartOf="@+id/popup_menu_drawer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <GridView
+        android:id="@+id/m_grid_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:numColumns="4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/popup_menu_drawer" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
