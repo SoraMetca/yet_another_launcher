@@ -65,9 +65,9 @@ abstract class OnSwipeListener : ComponentActivity(), GestureDetector.OnGestureL
                 // Horizontal swipe
                 if (abs(diffX) > swipeThreshold && abs(velocityX) > swipeVelocityThreshold) {
                     if (diffX > 0) {
-                        // Left -> Right - TODO
+                        onSwipeRight()
                     } else {
-                        // Right -> Left - TODO
+                        onSwipeRight()
                     }
                     return true
                 }
@@ -92,4 +92,7 @@ abstract class OnSwipeListener : ComponentActivity(), GestureDetector.OnGestureL
     override fun onLongPress(e: MotionEvent) {}
     open fun onSwipeToTop() {}
     open fun onSwipeToBottom() {}
+
+    open fun onSwipeLeft(){}
+    open fun onSwipeRight(){}
 }
