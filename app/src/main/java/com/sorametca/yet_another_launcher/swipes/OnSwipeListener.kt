@@ -1,28 +1,22 @@
-package com.sorametca.yet_another_launcher
+package com.sorametca.yet_another_launcher.swipes
 
+import android.content.Context
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.View
 import androidx.activity.ComponentActivity
 import kotlin.math.abs
 
-abstract class OnSwipeListener : ComponentActivity(), GestureDetector.OnGestureListener {
-    private lateinit var gestureDetector: GestureDetector
+abstract class OnSwipeListener(context: Context,
+                               private val mInterface: OnSwipeInterface
+) : GestureDetector.SimpleOnGestureListener(), View.OnTouchListener {
+    private val gestureDetector = GestureDetector(context, this)
     val swipeThreshold = 100
     val swipeVelocityThreshold = 100
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        gestureDetector = GestureDetector(this, this)
-    }
-
-    // Override this method to recognize touch event
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        return if (gestureDetector.onTouchEvent(event)) {
-            true
-        } else {
-            super.onTouchEvent(event)
-        }
+    override fun onTouch(v: View?, event: MotionEvent): Boolean {
+        return gestureDetector.onTouchEvent(event)
     }
 
     // All the below methods are GestureDetector.OnGestureListener members
@@ -46,6 +40,21 @@ abstract class OnSwipeListener : ComponentActivity(), GestureDetector.OnGestureL
         distanceX: Float,
         distanceY: Float
     ): Boolean {
+//        if (e1 == null) return false
+//
+//        val diffY = e2.y - e1.y
+//        print(diffY)
+//
+//        if (diffY > swipeThreshold) {
+//            mInterface.onSwipeToBottom()
+//            return true
+//        }
+//
+//        if (diffY < -swipeThreshold) {
+//            mInterface.onSwipeToTop()
+//            return true
+//        }
+
         return false
     }
 
@@ -65,20 +74,20 @@ abstract class OnSwipeListener : ComponentActivity(), GestureDetector.OnGestureL
                 // Horizontal swipe
                 if (abs(diffX) > swipeThreshold && abs(velocityX) > swipeVelocityThreshold) {
                     if (diffX > 0) {
-                        onSwipeRight()
+                        mInterface.onSwipeRight()
                     } else {
-                        onSwipeRight()
+                        mInterface.onSwipeRight()
                     }
                     return true
                 }
             } else {
 
-                // Vertical swipe
+                 //Vertical swipe
                 if (abs(diffY) > swipeThreshold && abs(velocityY) > swipeVelocityThreshold) {
                     if (diffY > 0) {
-                        onSwipeToBottom()
+                        mInterface.onSwipeToBottom()
                     } else {
-                        onSwipeToTop()
+                        mInterface.onSwipeToTop()
                     }
                     return true
                 }
@@ -88,11 +97,4 @@ abstract class OnSwipeListener : ComponentActivity(), GestureDetector.OnGestureL
         }
         return false
     }
-
-    override fun onLongPress(e: MotionEvent) {}
-    open fun onSwipeToTop() {}
-    open fun onSwipeToBottom() {}
-
-    open fun onSwipeLeft(){}
-    open fun onSwipeRight(){}
 }

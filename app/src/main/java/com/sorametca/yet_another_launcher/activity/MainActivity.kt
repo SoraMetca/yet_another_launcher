@@ -1,26 +1,38 @@
 package com.sorametca.yet_another_launcher.activity
+
 import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
 import android.widget.GridView
-import com.sorametca.yet_another_launcher.OnSwipeListener
-import com.sorametca.yet_another_launcher.R
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
+import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
+import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 
 
-class MainActivity : OnSwipeListener() {
+class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initializeDrawer()
+
+        val main = findViewById<View>(R.id.main)
+        main.isClickable = true
+        main.isFocusable = true
+
+        main.setOnTouchListener(
+            object : OnSwipeListener(this, this) {}
+        )
     }
 
     private fun initializeDrawer() {
         val bottomSheet = findViewById<View>(R.id.bottomSheet)
-        val drawerGridView = findViewById<GridView>(R.id.drawerGrid)
-        val bottomSheetBehavIor = BottomSheetBehavior.from(bottomSheet)
+        findViewById<GridView>(R.id.drawerGrid)
+        BottomSheetBehavior.from(bottomSheet)
     }
 
     override fun onLongPress(e: MotionEvent) {
@@ -29,7 +41,17 @@ class MainActivity : OnSwipeListener() {
     }
 
     override fun onSwipeToTop() {
-        val intent = Intent(this, AppDrawerActivity::class.java)
-        startActivity(intent)
+
+        val fragment = AppDrawerFragment()
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in_up,
+                R.anim.slide_in_out,
+                R.anim.slide_in_up,
+                R.anim.slide_in_out
+            )
+            .replace(R.id.main, fragment)
+            .addToBackStack("app_drawer")
+            .commit()
     }
 }
