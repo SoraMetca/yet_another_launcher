@@ -65,7 +65,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
     }
 
 
-    fun getInstalledAppList(): ArrayList<AppObject> {
+     fun getInstalledAppList(): ArrayList<AppObject> {
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
         val untreatedAppList: List<ResolveInfo> =

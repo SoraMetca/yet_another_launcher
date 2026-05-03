@@ -37,7 +37,7 @@ class AppAdapter(
         icon.setImageDrawable(appList[position].icon)
         label.text = appList[position].label
 
-        val mLinearLayout = v.findViewById<LinearLayout>(R.id.appLayout)
+        val mLinearLayout = v.findViewById<LinearLayout>(R.id.Layout)
         mLinearLayout.setOnClickListener {
             val launchAppIntent =
                 context.packageManager.getLaunchIntentForPackage(appList[position].packageName)
