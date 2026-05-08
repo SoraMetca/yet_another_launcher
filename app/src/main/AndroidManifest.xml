@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest package="com.sorametca.yet_another_launcher"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
+<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,10 +13,6 @@
         android:theme="@style/Theme.AppCompat.AppTheme">
         <activity
             android:name="com.sorametca.yet_another_launcher.activity.SettingsActivity"
-            android:exported="false"
-            android:theme="@style/Theme.AppCompat.AppTheme" />
-        <activity
-            android:name="com.sorametca.yet_another_launcher.fragments.AppDrawerFragment"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.AppTheme" />
         <activity
