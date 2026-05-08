@@ -9,7 +9,6 @@ import android.view.View
 import android.widget.GridView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.sorametca.yet_another_launcher.AppObject
 import com.sorametca.yet_another_launcher.PagerObject
 import com.sorametca.yet_another_launcher.R
@@ -18,8 +17,6 @@ import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
-
-
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private lateinit var viewPager: ViewPager
@@ -39,9 +36,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     private fun initializeHome() {
-        var pagerAppList = ArrayList<PagerObject>()
-        var appList = ArrayList<AppObject>()
-
+        val pagerAppList = ArrayList<PagerObject>()
 
         viewPager = findViewById(R.id.ViewPager)
         viewPager.setAdapter(ViewPagerAdapter(this, pagerAppList))
@@ -51,27 +46,34 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         val mBottomSheet: View = findViewById(R.id.bottomSheet)
         val mDrawerGridView: GridView = findViewById(R.id.drawerGrid)
         installedAppList = getinstalledAppList()
-        mDrawerGridView.setAdapter(AppAdapter(getApplicationContext(), installedAppList))
+        mDrawerGridView.adapter = AppAdapter(applicationContext, installedAppList)
     }
-    private fun getinstalledAppList(): ArrayList<AppObject>{
-        var list = ArrayList<AppObject>()
 
-        var intent: Intent = Intent(Intent.ACTION_MAIN, null)
+    private fun getinstalledAppList(): ArrayList<AppObject> {
+        val list = ArrayList<AppObject>()
+
+        var appName: String
+        var appPackageName: String
+        var appImage: Drawable
+        var app: AppObject
+
+        val intent: Intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
-        var untreatedAppList: List<ResolveInfo> = getApplicationContext().
-        getPackageManager().queryIntentActivities(intent, 0)
+        val untreatedAppList: List<ResolveInfo> =
+            applicationContext.packageManager.queryIntentActivities(intent, 0)
 
-        for(untreatedapp in untreatedAppList){
-            var appName: String = untreatedapp.activityInfo.loadLabel(getPackageManager()).toString()
-            var appPackageName: String = untreatedapp.activityInfo.packageName
-            var appImage: Drawable = untreatedapp.activityInfo.loadIcon(getPackageManager())
-            var app: AppObject = AppObject(appPackageName, appName, appImage)
-            if(!list.contains(app)){
+        for (untreatedapp in untreatedAppList) {
+            appName = untreatedapp.activityInfo.loadLabel(packageManager).toString()
+            appPackageName = untreatedapp.activityInfo.packageName
+            appImage = untreatedapp.activityInfo.loadIcon(packageManager)
+            app = AppObject(appPackageName, appName, appImage)
+            if (!list.contains(app)) {
                 list.add(app)
             }
         }
         return list
     }
+
     override fun onLongPress(e: MotionEvent) {
         val intent = Intent(this, SettingsActivity::class.java)
         startActivity(intent)
@@ -91,5 +93,4 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             .addToBackStack("app_drawer")
             .commit()
     }
-
 }
