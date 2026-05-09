@@ -10,13 +10,16 @@ import com.sorametca.yet_another_launcher.PagerObject
 import com.sorametca.yet_another_launcher.R
 
 class ViewPagerAdapter(val context: Context, var pagerAppList: ArrayList<PagerObject>): PagerAdapter() {
-
+    var appAdapterList: ArrayList<AppAdapter> = ArrayList<AppAdapter>()
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
         val inflater: LayoutInflater = LayoutInflater.from(context)
         val layout: ViewGroup = inflater.inflate(R.layout.pager_layout, container, false) as ViewGroup
 
-        val gridView: GridView = layout.findViewById(R.id.grid)
-        gridView.setAdapter(AppAdapter(context, pagerAppList[position].getAppList()))
+        val mGridView: GridView = layout.findViewById(R.id.grid)
+        var mGridAdapter: AppAdapter = AppAdapter(context, pagerAppList[position].getAppList())
+        mGridView.setAdapter(mGridAdapter)
+
+        appAdapterList.add(mGridAdapter)
 
         container.addView(layout)
         return layout
@@ -32,5 +35,10 @@ class ViewPagerAdapter(val context: Context, var pagerAppList: ArrayList<PagerOb
 
     override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
         container.removeView(`object` as View)
+    }
+    fun notifyGridChanged(){
+        for(appAdapter in appAdapterList){
+            appAdapter.notifyDataSetChanged()
+        }
     }
 }

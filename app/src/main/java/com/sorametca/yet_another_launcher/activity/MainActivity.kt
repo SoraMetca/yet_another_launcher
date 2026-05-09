@@ -91,5 +91,16 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             .addToBackStack("app_drawer")
             .commit()
     }
-
+    fun itemPress(app: AppObject) {
+        val launchAppIntent =
+            applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
+        if (launchAppIntent != null) {
+            applicationContext.startActivity(launchAppIntent)
+        }
+    }
+    fun collapseFragment() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        }
+    }
 }
