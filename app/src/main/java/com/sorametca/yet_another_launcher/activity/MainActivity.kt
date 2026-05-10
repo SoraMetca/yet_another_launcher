@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private lateinit var viewPager: ViewPager
     private val homeAppList = ArrayList<AppObject>()
     private lateinit var mViewPagerAdapter: ViewPagerAdapter
+    private lateinit var swipeListener: OnSwipeListener
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -31,27 +32,35 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         main.isClickable = true
         main.isFocusable = true
 
-        viewPager.setOnTouchListener(
-            object : OnSwipeListener(this, this) {}
-        )
-        main.setOnDragListener{v, event -> when(event.action){
-            DragEvent.ACTION_DRAG_STARTED -> true
-            DragEvent.ACTION_DRAG_ENTERED -> true
-            DragEvent.ACTION_DRAG_EXITED -> true
-            DragEvent.ACTION_DROP -> {
-                val app = event.localState as AppObject
-                homeAppList.add(app)
-                mViewPagerAdapter.notifyGridChanged()
-                true
+        swipeListener = object : OnSwipeListener(this, this) {}
+
+        main.setOnDragListener { v, event ->
+            when (event.action) {
+                DragEvent.ACTION_DRAG_STARTED -> true
+                DragEvent.ACTION_DRAG_ENTERED -> true
+                DragEvent.ACTION_DRAG_EXITED -> true
+                DragEvent.ACTION_DROP -> {
+                    val app = event.localState as AppObject
+                    homeAppList.add(app)
+                    mViewPagerAdapter.notifyGridChanged()
+                    true
+                }
+                DragEvent.ACTION_DRAG_ENDED -> true
+                else -> false
             }
-            DragEvent.ACTION_DRAG_ENDED -> true
-            else -> false
-        } }
+        }
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        swipeListener.onTouch(null, ev)
+        return super.dispatchTouchEvent(ev)
     }
 
     private fun initializeHome() {
         val pagerAppList = ArrayList<PagerObject>()
+        val appList = ArrayList<AppObject>()
         pagerAppList.add(PagerObject(homeAppList))
+        pagerAppList.add(PagerObject(appList))
         viewPager = findViewById(R.id.ViewPager)
         mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList)
         viewPager.setAdapter(mViewPagerAdapter)
@@ -62,7 +71,13 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         startActivity(intent)
     }
 
+    override fun onDoubleTap() {
+        val intent = Intent(this, HomeScreenActivity::class.java)
+        startActivity(intent)
+    }
+
     override fun onSwipeToTop() {
+        if (supportFragmentManager.findFragmentByTag("app_drawer") != null) return
 
         val fragment = AppDrawerFragment()
         supportFragmentManager.beginTransaction()
@@ -72,7 +87,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                 R.anim.slide_in_up,
                 R.anim.slide_in_out
             )
-            .replace(R.id.main, fragment)
+            .replace(R.id.main, fragment, "app_drawer")
             .addToBackStack("app_drawer")
             .commit()
     }

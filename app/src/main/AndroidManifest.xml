@@ -16,6 +16,10 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.AppTheme" />
         <activity
+            android:name="com.sorametca.yet_another_launcher.activity.HomeScreenActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.AppTheme" />
+        <activity
             android:name="com.sorametca.yet_another_launcher.activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AppCompat.AppTheme"

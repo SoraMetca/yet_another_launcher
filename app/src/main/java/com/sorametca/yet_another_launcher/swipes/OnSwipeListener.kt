@@ -98,4 +98,9 @@ abstract class OnSwipeListener(context: Context,
         }
         return false
     }
+
+    override fun onDoubleTap(e: MotionEvent): Boolean {
+        mInterface.onDoubleTap()
+        return true
+    }
 }

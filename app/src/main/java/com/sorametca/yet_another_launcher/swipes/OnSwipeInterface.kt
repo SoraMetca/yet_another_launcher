@@ -10,4 +10,5 @@ interface OnSwipeInterface {
     open fun onSwipeLeft(){}
     open fun onSwipeRight(){}
     open fun onLongPress(e: MotionEvent) {}
+    open fun onDoubleTap() {}
 }
