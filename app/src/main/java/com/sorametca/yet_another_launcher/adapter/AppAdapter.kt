@@ -1,6 +1,7 @@
 package com.sorametca.yet_another_launcher.adapter
 
 import android.content.Context
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,8 +11,12 @@ import android.widget.Filterable
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import com.sorametca.yet_another_launcher.AppObject
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.fragments.AppDrawerContextMenu
+import com.sorametca.yet_another_launcher.fragments.SortAppsFragment
 
 class AppAdapter(
     private val context: Context,
@@ -48,6 +53,27 @@ class AppAdapter(
             if (launchAppIntent != null) {
                 context.startActivity(launchAppIntent)
             }
+        }
+
+        mLinearLayout.setOnLongClickListener {
+            val fragment = AppDrawerContextMenu()
+
+            val location = IntArray(2)
+            mLinearLayout.getLocationOnScreen(location)
+            val x = location[0]
+            val y = location[1]
+
+            val bundle = Bundle()
+            bundle.putInt("x", x)
+            bundle.putInt("y", y)
+            fragment.arguments = bundle
+
+            val activity = context as? FragmentActivity
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.add(R.id.main, fragment)
+                ?.addToBackStack(null)
+                ?.commit()
+            true
         }
         return v
     }

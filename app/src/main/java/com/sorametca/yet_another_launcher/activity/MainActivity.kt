@@ -42,12 +42,12 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         viewPager.setAdapter(ViewPagerAdapter(this, pagerAppList))
     }
 
-    private fun initializeDrawer() {
-        val mBottomSheet: View = findViewById(R.id.bottomSheet)
-        val mDrawerGridView: GridView = findViewById(R.id.drawerGrid)
-        installedAppList = getinstalledAppList()
-        mDrawerGridView.adapter = AppAdapter(applicationContext, installedAppList)
-    }
+//    private fun initializeDrawer() {
+//        val mBottomSheet: View = findViewById(R.id.bottomSheet)
+//        val mDrawerGridView: GridView = findViewById(R.id.drawerGrid)
+//        installedAppList = getinstalledAppList()
+//        mDrawerGridView.adapter = AppAdapter(applicationContext, installedAppList)
+//    }
 
     private fun getinstalledAppList(): ArrayList<AppObject> {
         val list = ArrayList<AppObject>()
