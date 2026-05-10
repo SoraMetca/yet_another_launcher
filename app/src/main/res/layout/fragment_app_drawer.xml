@@ -17,40 +17,44 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
-        android:id="@+id/popup_menu_drawer"
+        android:id="@+id/popup_menu_drawer_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="38dp"
-        android:layout_marginEnd="19dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="40dp"
+        android:src="@drawable/dots"
+        app:layout_constraintBottom_toTopOf="@+id/m_grid_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/search_input"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/m3_split_button_chevron_avd" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/search_input"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="36dp"
-        android:layout_marginEnd="25dp"
+        android:layout_marginTop="35dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/layout_bg"
         android:hint="@string/search"
         android:textColor="@color/white"
-        app:layout_constraintEnd_toStartOf="@+id/popup_menu_drawer"
+        app:layout_constraintBottom_toTopOf="@+id/m_grid_view"
+        app:layout_constraintEnd_toStartOf="@+id/popup_menu_drawer_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.052" />
 
     <GridView
         android:id="@+id/m_grid_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="40dp"
         android:numColumns="4"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/popup_menu_drawer" />
+        app:layout_constraintTop_toBottomOf="@+id/popup_menu_drawer_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

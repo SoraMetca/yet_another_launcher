@@ -15,6 +15,12 @@
             android:name="com.sorametca.yet_another_launcher.activity.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.AppCompat.AppTheme" />
+
+        <activity
+            android:name="com.sorametca.yet_another_launcher.activity.DrawerSettings"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.AppTheme" />
+
         <activity
             android:name="com.sorametca.yet_another_launcher.activity.MainActivity"
             android:exported="true"
