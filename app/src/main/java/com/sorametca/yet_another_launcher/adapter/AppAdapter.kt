@@ -13,7 +13,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
-import com.sorametca.yet_another_launcher.AppObject
+import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.fragments.AppDrawerContextMenu
 import com.sorametca.yet_another_launcher.fragments.SortAppsFragment

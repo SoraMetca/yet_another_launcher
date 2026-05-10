@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridView
 import androidx.viewpager.widget.PagerAdapter
-import com.sorametca.yet_another_launcher.PagerObject
+import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.R
 
 class ViewPagerAdapter(val context: Context, var pagerAppList: ArrayList<PagerObject>): PagerAdapter() {

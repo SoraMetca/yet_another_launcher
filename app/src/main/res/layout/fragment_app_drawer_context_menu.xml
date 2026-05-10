@@ -19,66 +19,71 @@
             android:layout_height="match_parent">
 
             <ImageButton
-                android:id="@+id/imageButton"
+                android:id="@+id/uninstall_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="1dp"
                 android:layout_marginBottom="1dp"
-                android:src="@drawable/dots"
+                android:src="@drawable/trash"
                 app:layout_constraintBottom_toTopOf="@+id/textView3"
-                app:layout_constraintEnd_toStartOf="@+id/imageButton2"
+                app:layout_constraintEnd_toStartOf="@+id/rename_button"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                android:background="?android:selectableItemBackground"
                 app:layout_constraintVertical_chainStyle="packed" />
 
             <ImageButton
-                android:id="@+id/imageButton2"
+                android:id="@+id/rename_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="1dp"
-                android:src="@drawable/dots"
+                android:src="@drawable/edit"
                 app:layout_constraintBottom_toTopOf="@+id/textView4"
-                app:layout_constraintEnd_toStartOf="@+id/imageButton3"
-                app:layout_constraintStart_toEndOf="@+id/imageButton"
+                app:layout_constraintEnd_toStartOf="@+id/add_shortcut_button"
+                app:layout_constraintStart_toEndOf="@+id/uninstall_button"
                 app:layout_constraintTop_toTopOf="parent"
+                android:background="?android:selectableItemBackground"
                 app:layout_constraintVertical_chainStyle="packed" />
 
             <ImageButton
-                android:id="@+id/imageButton3"
+                android:id="@+id/add_shortcut_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="11dp"
-                android:src="@drawable/dots"
+                android:src="@drawable/plus"
                 app:layout_constraintBottom_toTopOf="@+id/textView5"
-                app:layout_constraintEnd_toStartOf="@+id/imageButton4"
-                app:layout_constraintStart_toEndOf="@+id/imageButton2"
+                app:layout_constraintEnd_toStartOf="@+id/hide_button"
+                app:layout_constraintStart_toEndOf="@+id/rename_button"
+                android:background="?android:selectableItemBackground"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
-                android:id="@+id/imageButton4"
+                android:id="@+id/hide_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="1dp"
-                android:src="@drawable/dots"
+                android:src="@drawable/hide"
                 app:layout_constraintBottom_toTopOf="@+id/textView7"
-                app:layout_constraintEnd_toStartOf="@+id/imageButton5"
-                app:layout_constraintStart_toEndOf="@+id/imageButton3"
+                app:layout_constraintEnd_toStartOf="@+id/info_button"
+                app:layout_constraintStart_toEndOf="@+id/add_shortcut_button"
                 app:layout_constraintTop_toTopOf="parent"
+                android:background="?android:selectableItemBackground"
                 app:layout_constraintVertical_chainStyle="packed" />
 
             <ImageButton
-                android:id="@+id/imageButton5"
+                android:id="@+id/info_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="1dp"
-                android:src="@drawable/dots"
+                android:src="@drawable/info"
                 app:layout_constraintBottom_toTopOf="@+id/textView6"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/imageButton4"
+                app:layout_constraintStart_toEndOf="@+id/hide_button"
                 app:layout_constraintTop_toTopOf="parent"
+                android:background="?android:selectableItemBackground"
                 app:layout_constraintVertical_chainStyle="packed" />
 
             <TextView
@@ -94,7 +99,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/textView4"
                 app:layout_constraintHorizontal_chainStyle="spread_inside"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageButton" />
+                app:layout_constraintTop_toBottomOf="@+id/uninstall_button" />
 
             <TextView
                 android:id="@+id/textView4"
@@ -106,7 +111,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/textView5"
                 app:layout_constraintStart_toEndOf="@+id/textView3"
-                app:layout_constraintTop_toBottomOf="@+id/imageButton2" />
+                app:layout_constraintTop_toBottomOf="@+id/rename_button" />
 
             <TextView
                 android:id="@+id/textView5"
@@ -119,7 +124,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/textView7"
                 app:layout_constraintStart_toEndOf="@+id/textView4"
-                app:layout_constraintTop_toBottomOf="@+id/imageButton3" />
+                app:layout_constraintTop_toBottomOf="@+id/add_shortcut_button" />
 
             <TextView
                 android:id="@+id/textView6"
@@ -132,7 +137,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/textView7"
-                app:layout_constraintTop_toBottomOf="@+id/imageButton5" />
+                app:layout_constraintTop_toBottomOf="@+id/info_button" />
 
             <TextView
                 android:id="@+id/textView7"
@@ -145,7 +150,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/textView6"
                 app:layout_constraintStart_toEndOf="@+id/textView5"
-                app:layout_constraintTop_toBottomOf="@+id/imageButton4" />
+                app:layout_constraintTop_toBottomOf="@+id/hide_button" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>

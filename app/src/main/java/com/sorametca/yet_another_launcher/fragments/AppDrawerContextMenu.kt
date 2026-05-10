@@ -1,12 +1,12 @@
 package com.sorametca.yet_another_launcher.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.fragment.app.Fragment
 import com.sorametca.yet_another_launcher.R
 
 class AppDrawerContextMenu : Fragment() {

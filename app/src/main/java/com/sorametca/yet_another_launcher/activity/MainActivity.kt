@@ -9,8 +9,8 @@ import android.view.View
 import android.widget.GridView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
-import com.sorametca.yet_another_launcher.AppObject
-import com.sorametca.yet_another_launcher.PagerObject
+import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter

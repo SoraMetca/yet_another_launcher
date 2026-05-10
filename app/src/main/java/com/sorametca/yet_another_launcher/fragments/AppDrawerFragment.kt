@@ -15,7 +15,7 @@ import android.widget.ImageButton
 import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import com.google.android.material.textfield.TextInputEditText
-import com.sorametca.yet_another_launcher.AppObject
+import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.activity.DrawerSettings
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
@@ -30,12 +30,12 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
     private lateinit var label: String
     private lateinit var icon: Drawable
     private lateinit var app: AppObject
-    private lateinit var popupMenuDrawerButton : ImageButton
+    private lateinit var popupMenuDrawerButton: ImageButton
     private var startY = 0f
 
     // layout
     private lateinit var mDrawerGridView: GridView
-    private lateinit var searchInput : TextInputEditText
+    private lateinit var searchInput: TextInputEditText
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,7 +44,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
         return inflater.inflate(R.layout.fragment_app_drawer, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?){
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         appList = getInstalledAppList()
         popupMenuDrawerButton = view.findViewById(R.id.popup_menu_drawer_button)
         searchInput = view.findViewById(R.id.search_input)
@@ -59,6 +59,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 adapter.filter.filter(s)
             }
+
             override fun afterTextChanged(s: Editable?) {}
         })
 
@@ -70,7 +71,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
 
                 println(menuItem.itemId)
 
-                if(menuItem.itemId == 2131231267){
+                if(menuItem.title == "Sort apps"){
 
                     val fragment = SortAppsFragment()
                     activity?.supportFragmentManager?.beginTransaction()
@@ -83,17 +84,14 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
                     val intent = Intent(activity, DrawerSettings::class.java)
                     startActivity(intent)
                 }
-                if(menuItem.itemId == 2131231265){
+                if(menuItem.title == "Launcher Settings"){
                     val intent = Intent(activity, SettingsActivity::class.java)
                     startActivity(intent)
                 }
                 true
-
             }
             popupMenu.show()
         }
-
-
 
         mDrawerGridView.setOnTouchListener { _, event ->
             when (event.action) {
@@ -119,7 +117,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
     }
 
 
-     fun getInstalledAppList(): ArrayList<AppObject> {
+    fun getInstalledAppList(): ArrayList<AppObject> {
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
         val untreatedAppList: List<ResolveInfo> =

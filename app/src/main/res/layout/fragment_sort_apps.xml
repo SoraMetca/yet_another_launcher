@@ -49,7 +49,7 @@
             app:layout_constraintTop_toBottomOf="@+id/textView">
 
             <RadioButton
-                android:id="@+id/radioButton"
+                android:id="@+id/radio_alphabetical_asc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -62,7 +62,7 @@
                 android:textSize="20sp" />
 
             <RadioButton
-                android:id="@+id/radioButton2"
+                android:id="@+id/radio_alphabetical_desc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
@@ -72,12 +72,12 @@
                 android:textSize="20sp" />
 
             <RadioButton
-                android:id="@+id/radioButton3"
+                android:id="@+id/radio_custom"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:buttonTint="#FFFFFF"
-                android:text="RadioButton"
+                android:text="Custom"
                 android:textColor="@color/design_default_color_background"
                 android:textSize="20sp" />
 
