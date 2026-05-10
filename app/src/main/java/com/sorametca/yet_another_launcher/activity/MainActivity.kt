@@ -5,15 +5,14 @@ import android.os.Bundle
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
-import android.widget.GridView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.AppObject
 import com.sorametca.yet_another_launcher.PagerObject
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
+import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 
@@ -71,10 +70,11 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         startActivity(intent)
     }
 
-    override fun onDoubleTap() {
-        val intent = Intent(this, HomeScreenActivity::class.java)
-        startActivity(intent)
-    }
+
+        override fun onDoubleTap() {
+            if (supportFragmentManager.findFragmentByTag("home_screen") != null) return
+            HomeScreenSettingsFragment().show(supportFragmentManager, "home_screen")
+        }
 
     override fun onSwipeToTop() {
         if (supportFragmentManager.findFragmentByTag("app_drawer") != null) return
