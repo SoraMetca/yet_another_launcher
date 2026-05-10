@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.GridView
@@ -23,6 +24,8 @@ import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private lateinit var viewPager: ViewPager
+    private val homeAppList = ArrayList<AppObject>()
+    private lateinit var mViewPagerAdapter: ViewPagerAdapter
     private var installedAppList = ArrayList<AppObject>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,18 +36,31 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         main.isClickable = true
         main.isFocusable = true
 
-        main.setOnTouchListener(
+        viewPager.setOnTouchListener(
             object : OnSwipeListener(this, this) {}
+
         )
+        main.setOnDragListener{v, event -> when(event.action){
+            DragEvent.ACTION_DRAG_STARTED -> true
+            DragEvent.ACTION_DRAG_ENTERED -> true
+            DragEvent.ACTION_DRAG_EXITED -> true
+            DragEvent.ACTION_DROP -> {
+                val app = event.localState as AppObject
+                homeAppList.add(app)
+                mViewPagerAdapter.notifyGridChanged()
+                true
+            }
+            DragEvent.ACTION_DRAG_ENDED -> true
+            else -> false
+        } }
     }
 
     private fun initializeHome() {
         var pagerAppList = ArrayList<PagerObject>()
-        var appList = ArrayList<AppObject>()
-
-
+        pagerAppList.add(PagerObject(homeAppList))
         viewPager = findViewById(R.id.ViewPager)
-        viewPager.setAdapter(ViewPagerAdapter(this, pagerAppList))
+        mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList)
+        viewPager.setAdapter(mViewPagerAdapter)
     }
 
     private fun initializeDrawer() {
