@@ -5,11 +5,13 @@ import android.os.Bundle
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
+import android.widget.GridView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.AppObject
 import com.sorametca.yet_another_launcher.PagerObject
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
