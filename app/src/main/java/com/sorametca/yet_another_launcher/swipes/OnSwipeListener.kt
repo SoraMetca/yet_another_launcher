@@ -16,7 +16,8 @@ abstract class OnSwipeListener(context: Context,
     val swipeVelocityThreshold = 100
 
     override fun onTouch(v: View?, event: MotionEvent): Boolean {
-        return gestureDetector.onTouchEvent(event)
+        gestureDetector.onTouchEvent(event)
+        return true
     }
 
     // All the below methods are GestureDetector.OnGestureListener members

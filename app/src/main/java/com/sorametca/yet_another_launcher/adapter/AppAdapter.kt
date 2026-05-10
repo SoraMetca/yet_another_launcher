@@ -1,5 +1,6 @@
 package com.sorametca.yet_another_launcher.adapter
 
+import android.content.ClipData
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.sorametca.yet_another_launcher.AppObject
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.activity.MainActivity
 
 class AppAdapter(
     private val context: Context,
@@ -39,12 +41,18 @@ class AppAdapter(
 
         val mLinearLayout = v.findViewById<LinearLayout>(R.id.Layout)
         mLinearLayout.setOnClickListener {
-            val launchAppIntent =
-                context.packageManager.getLaunchIntentForPackage(appList[position].packageName)
-            if (launchAppIntent != null) {
-                context.startActivity(launchAppIntent)
-            }
+            (context as MainActivity).itemPress(appList[position])
 
+        }
+
+        mLinearLayout.setOnLongClickListener { v ->
+            val app = appList[position]
+            val clipData = ClipData.newPlainText("", "")
+            val shadowBuilder = View.DragShadowBuilder(v)
+            v.startDragAndDrop(clipData, shadowBuilder, app, 0)
+            (context as MainActivity).collapseFragment()
+
+            true
         }
         return v
     }
