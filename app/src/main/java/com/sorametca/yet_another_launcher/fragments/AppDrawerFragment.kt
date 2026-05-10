@@ -1,11 +1,14 @@
 package com.sorametca.yet_another_launcher.fragments
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -23,7 +26,7 @@ import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 
 
-class AppDrawerFragment : Fragment(), OnSwipeInterface {
+class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortSelectedListener {
 
     private var appList = ArrayList<AppObject>()
     private lateinit var packageName: String
@@ -31,7 +34,9 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
     private lateinit var icon: Drawable
     private lateinit var app: AppObject
     private lateinit var popupMenuDrawerButton: ImageButton
+    private lateinit var adapter : AppAdapter
     private var startY = 0f
+    lateinit var prefs : SharedPreferences
 
     // layout
     private lateinit var mDrawerGridView: GridView
@@ -50,9 +55,8 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
         searchInput = view.findViewById(R.id.search_input)
         mDrawerGridView = view.findViewById(R.id.m_grid_view)
 
-        val adapter = AppAdapter(requireContext(), appList)
-        mDrawerGridView.adapter = adapter
-
+        fillGridView()
+        applySavedSort()
 
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -68,12 +72,10 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             popupMenu.menuInflater.inflate(R.menu.app_drawer_menu, popupMenu.menu)
 
             popupMenu.setOnMenuItemClickListener { menuItem ->
-
-                println(menuItem.itemId)
-
                 if(menuItem.title == "Sort apps"){
 
                     val fragment = SortAppsFragment()
+                    fragment.sortListener = this
                     activity?.supportFragmentManager?.beginTransaction()
                         ?.add(R.id.main, fragment)
                         ?.addToBackStack(null)
@@ -109,6 +111,16 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             false
         }
 
+        val sortFragment = childFragmentManager.findFragmentById(R.id.sort_main) as? SortAppsFragment
+        sortFragment?.sortListener = this
+
+
+
+    }
+
+    fun fillGridView(){
+        adapter = AppAdapter(requireContext(), appList)
+        mDrawerGridView.adapter = adapter
     }
 
     fun GridView.isAtTop(): Boolean {
@@ -136,5 +148,34 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
         }
 
         return appList
+    }
+
+    override fun onSortSelected(sortedList: Int) {
+        val sortedList = when (sortedList) {
+            R.id.radio_alphabetical_asc -> SortTypes.ALPHABETICAL_ASC.sort(appList)
+            R.id.radio_alphabetical_desc -> SortTypes.ALPHABETICAL_DESC.sort(appList)
+            R.id.radio_custom -> SortTypes.CUSTOM.sort(appList)
+            else -> appList
+        }
+
+        appList.clear()
+        appList.addAll(sortedList)
+        adapter.updateList(ArrayList(appList))
+    }
+
+    private fun applySavedSort() {
+        val prefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val savedSortId = prefs.getInt("sort_type_id", R.id.radio_alphabetical_asc)
+
+        val sortedList = when(savedSortId) {
+            R.id.radio_alphabetical_asc -> SortTypes.ALPHABETICAL_ASC.sort(appList)
+            R.id.radio_alphabetical_desc -> SortTypes.ALPHABETICAL_DESC.sort(appList)
+            R.id.radio_custom -> SortTypes.CUSTOM.sort(appList)
+            else -> appList
+        }
+
+        appList.clear()
+        appList.addAll(sortedList)
+        adapter.updateList(ArrayList(appList))
     }
 }

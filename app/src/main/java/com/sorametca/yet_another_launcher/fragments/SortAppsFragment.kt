@@ -1,31 +1,25 @@
 package com.sorametca.yet_another_launcher.fragments
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioGroup
-import androidx.compose.material3.RadioButton
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.R
-import android.widget.RadioButton
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 
 class SortAppsFragment : Fragment() {
-
-    lateinit var appList: List<AppObject>
-    lateinit var adapter: AppAdapter
     private lateinit var radioGroup : RadioGroup
 
-    companion object {
-        fun newInstance(appList: List<AppObject>, adapter: AppAdapter): SortAppsFragment {
-            val fragment = SortAppsFragment()
-            fragment.appList = appList
-            fragment.adapter = adapter
-            return fragment
-        }
+    interface OnSortSelectedListener {
+        fun onSortSelected(sortedList: Int)
     }
+
+    var sortListener: OnSortSelectedListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -38,19 +32,14 @@ class SortAppsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         radioGroup = view.findViewById(R.id.sort_types)
+
+        val savedSortId = context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            ?.getInt("sort_type_id", R.id.radio_alphabetical_asc) ?: R.id.radio_alphabetical_asc
+        radioGroup.check(savedSortId)
+
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
-
-            val sortedApps = when (checkedId) {
-                R.id.radio_alphabetical_asc ->
-                    SortTypes.ALPHABETICAL_ASC.sort(appList)
-                R.id.radio_alphabetical_desc ->
-                    SortTypes.ALPHABETICAL_DESC.sort(appList)
-                R.id.radio_custom ->
-                    SortTypes.CUSTOM.sort(appList)
-
-                else -> appList
-            }
-//            adapter.submitList(sortedApps)
+            context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)?.edit()?.putInt("sort_type_id", checkedId)?.apply()
+            sortListener?.onSortSelected(checkedId)
         }
     }
 }
