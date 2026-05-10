@@ -37,7 +37,7 @@ class SortAppsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        radioGroup = view.findViewById(R.id.radioGroup)
+        radioGroup = view.findViewById(R.id.sort_types)
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
 
             val sortedApps = when (checkedId) {
