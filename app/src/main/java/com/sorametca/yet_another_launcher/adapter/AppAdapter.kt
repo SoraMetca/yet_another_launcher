@@ -100,4 +100,10 @@ class AppAdapter(
             }
         }
     }
+
+    fun updateList(newList: List<AppObject>) {
+        filteredList.clear()
+        filteredList.addAll(newList)
+        notifyDataSetChanged()
+    }
 }
