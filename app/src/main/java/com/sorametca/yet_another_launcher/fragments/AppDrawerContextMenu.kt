@@ -137,10 +137,10 @@ class AppDrawerContextMenu : Fragment() {
         val menuHeight = menu.measuredHeight
 
         var adjustedX = x
-        var adjustedY = y
+        var adjustedY = y + 140
 
         if (adjustedX + menuWidth > screenWidth) adjustedX = screenWidth - menuWidth - 120
-        if (adjustedY + menuHeight > screenHeight) adjustedY = screenHeight - menuHeight - 220
+        if (adjustedY + menuHeight > screenHeight) adjustedY = screenHeight - menuHeight - 270
 
         val params = menu.layoutParams as FrameLayout.LayoutParams
         params.leftMargin = adjustedX
