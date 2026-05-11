@@ -7,21 +7,29 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
-import com.sorametca.yet_another_launcher.model.AppObject
-import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
+import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
-    private lateinit var viewPager: ViewPager
+
+    // class variables
     private val homeAppList = ArrayList<AppObject>()
+
+    // layout variables
+    private lateinit var viewPager: ViewPager
     private lateinit var mViewPagerAdapter: ViewPagerAdapter
+
+    // helpers
     private lateinit var swipeListener: OnSwipeListener
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -44,6 +52,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                     mViewPagerAdapter.notifyGridChanged()
                     true
                 }
+
                 DragEvent.ACTION_DRAG_ENDED -> true
                 else -> false
             }
@@ -71,10 +80,10 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
 
-        override fun onDoubleTap() {
-            if (supportFragmentManager.findFragmentByTag("home_screen") != null) return
-            HomeScreenSettingsFragment().show(supportFragmentManager, "home_screen")
-        }
+    override fun onDoubleTap() {
+        if (supportFragmentManager.findFragmentByTag("home_screen") != null) return
+        HomeScreenSettingsFragment().show(supportFragmentManager, "home_screen")
+    }
 
     override fun onSwipeToTop() {
         if (supportFragmentManager.findFragmentByTag("app_drawer") != null) return
@@ -91,6 +100,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             .addToBackStack("app_drawer")
             .commit()
     }
+
     fun itemPress(app: AppObject) {
         val launchAppIntent =
             applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
@@ -98,6 +108,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             applicationContext.startActivity(launchAppIntent)
         }
     }
+
     fun collapseFragment() {
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()

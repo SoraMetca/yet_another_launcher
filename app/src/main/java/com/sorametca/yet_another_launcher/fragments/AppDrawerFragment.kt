@@ -31,20 +31,20 @@ import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 
 class AppDrawerFragment : Fragment(), OnSwipeInterface {
 
+    // class variables
     private var appList = ArrayList<AppObject>()
     private lateinit var packageName: String
-    private lateinit var label: String
-    private lateinit var icon: Drawable
-    private lateinit var app: AppObject
-    private lateinit var popupMenuDrawerButton: ImageButton
+
+    // helpers
     private lateinit var adapter : AppAdapter
-    private var startY = 0f
     private lateinit var viewModel: AppDrawerViewModel
     private lateinit var appChangeReceiver: BroadcastReceiver
 
-    // layout
+    // layout variables
     private lateinit var mDrawerGridView: GridView
     private lateinit var searchInput: TextInputEditText
+    private lateinit var popupMenuDrawerButton: ImageButton
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,6 +54,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         appList = getInstalledAppList()
         popupMenuDrawerButton = view.findViewById(R.id.popup_menu_drawer_button)
         searchInput = view.findViewById(R.id.search_input)
@@ -69,6 +70,13 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             adapter.updateList(ArrayList(list))
         }
 
+        searchSetup()
+        popupDrawerSetup()
+        collapseAppDrawer()
+        setupAppChangeReceiver()
+    }
+
+    private fun searchSetup(){
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -76,7 +84,9 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             }
             override fun afterTextChanged(s: Editable?) {}
         })
+    }
 
+    private fun popupDrawerSetup(){
         popupMenuDrawerButton.setOnClickListener {
             val popupMenu = PopupMenu(activity?.applicationContext, popupMenuDrawerButton)
             popupMenu.menuInflater.inflate(R.menu.app_drawer_menu, popupMenu.menu)
@@ -103,6 +113,10 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             }
             popupMenu.show()
         }
+    }
+
+    private fun collapseAppDrawer(){ // TODO suppress lint warning, move to OnSwipeListener
+        var startY = 0f
 
         mDrawerGridView.setOnTouchListener { _, event ->
             when (event.action) {
@@ -119,17 +133,19 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             }
             false
         }
-
-        setupAppChangeReceiver()
     }
 
-    fun GridView.isAtTop(): Boolean {
+    private fun GridView.isAtTop(): Boolean {
         return firstVisiblePosition == 0 &&
                 (getChildAt(0)?.top ?: 0) >= 0
     }
 
 
     fun getInstalledAppList(): ArrayList<AppObject> {
+        var label: String
+        var icon: Drawable
+        var app: AppObject
+
         val intent = Intent(Intent.ACTION_MAIN, null)
         intent.addCategory(Intent.CATEGORY_LAUNCHER)
         val untreatedAppList: List<ResolveInfo> =
@@ -155,12 +171,11 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
             addAction(Intent.ACTION_PACKAGE_REPLACED)
-            addDataScheme("package") // important!
+            addDataScheme("package")
         }
 
         appChangeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                // Reload the installed apps whenever a package changes
                 viewModel.loadInstalledApps(requireContext())
             }
         }

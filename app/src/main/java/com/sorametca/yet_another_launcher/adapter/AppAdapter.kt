@@ -14,10 +14,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
-import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.fragments.AppDrawerContextMenu
+import com.sorametca.yet_another_launcher.model.AppObject
 import kotlin.math.abs
 
 class AppAdapter(
@@ -33,7 +33,8 @@ class AppAdapter(
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
         val v: View = if (convertView == null) {
-            val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val inflater =
+                context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             inflater.inflate(R.layout.item_app, parent, false)
         } else {
             convertView
@@ -61,6 +62,7 @@ class AppAdapter(
                     dragStartY = event.y
                     false
                 }
+
                 MotionEvent.ACTION_MOVE -> {
                     if (isLongPressed) {
                         val dx = abs(event.x - dragStartX)
@@ -76,6 +78,7 @@ class AppAdapter(
                     }
                     false
                 }
+
                 MotionEvent.ACTION_UP -> {
                     if (isLongPressed) {
                         isLongPressed = false
@@ -99,6 +102,7 @@ class AppAdapter(
                         false
                     }
                 }
+
                 else -> false
             }
         }

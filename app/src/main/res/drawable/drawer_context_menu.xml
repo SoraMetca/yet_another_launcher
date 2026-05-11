@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/listview_background_shape">
-    <stroke android:width="2dp" android:color="#717171" />
-    <padding android:left="5dp"
-        android:top="2dp"
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/listview_background_shape">
+    <stroke
+        android:width="2dp"
+        android:color="#717171" />
+    <padding
+        android:bottom="2dp"
+        android:left="5dp"
         android:right="2dp"
-        android:bottom="2dp" />
+        android:top="2dp" />
     <corners android:radius="40dp" />
     <solid android:color="#3A3A3A" />
 </shape>

@@ -7,24 +7,28 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.fragment.app.Fragment
-import com.sorametca.yet_another_launcher.R
 import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 
 class AppDrawerContextMenu : Fragment() {
 
-    private lateinit var uninstallButton: ImageButton
-    private lateinit var infoButton: ImageButton
+    // class variables
     private var packageName: String? = null
 
+    // helpers
     private lateinit var viewModel: AppDrawerViewModel
+
+    // layout variables
+    private lateinit var uninstallButton: ImageButton
+    private lateinit var infoButton: ImageButton
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,14 +40,14 @@ class AppDrawerContextMenu : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        uninstallButton = view.findViewById(R.id.uninstall_button)
+        uninstallButton.setOnClickListener { uninstallApp() }
+
+        infoButton = view.findViewById(R.id.info_button)
+        infoButton.setOnClickListener { displayAppInfo() }
+
         viewModel = ViewModelProvider(requireActivity())[AppDrawerViewModel::class.java]
         packageName = arguments?.getString("packageName")
-
-        uninstallButton = view.findViewById(R.id.uninstall_button)
-        infoButton = view.findViewById(R.id.info_button)
-
-        uninstallButton.setOnClickListener { uninstallApp() }
-        infoButton.setOnClickListener { displayAppInfo() }
 
         setupMenuPositioning(view)
         setupDismissOnOutsideClick(view)
@@ -51,7 +55,7 @@ class AppDrawerContextMenu : Fragment() {
 
     private fun uninstallApp() {
         if (packageName == null) {
-            Toast.makeText(requireContext(), "Uninstalling unsuccessful", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "Uninstall unsuccessful", Toast.LENGTH_LONG).show()
         } else {
             val intent = Intent(Intent.ACTION_DELETE)
             intent.data = "package:$packageName".toUri()
