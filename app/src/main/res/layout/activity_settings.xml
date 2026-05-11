@@ -18,12 +18,12 @@
         android:text="Settings"
         android:textColor="@color/white"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/options_list_view"
-        app:layout_constraintStart_toStartOf="@+id/options_list_view"
+        app:layout_constraintBottom_toTopOf="@+id/hidden_apps_list_view"
+        app:layout_constraintStart_toStartOf="@+id/hidden_apps_list_view"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ListView
-        android:id="@+id/options_list_view"
+        android:id="@+id/hidden_apps_list_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="1dp"
