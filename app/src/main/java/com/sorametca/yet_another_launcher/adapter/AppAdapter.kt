@@ -84,6 +84,7 @@ class AppAdapter(
                         val bundle = Bundle()
                         bundle.putInt("x", location[0])
                         bundle.putInt("y", location[1])
+                        bundle.putString("packageName", filteredList[position].packageName)
 
                         val fragment = AppDrawerContextMenu()
                         fragment.arguments = bundle

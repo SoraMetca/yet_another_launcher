@@ -1,14 +1,15 @@
 package com.sorametca.yet_another_launcher.fragments
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.ResolveInfo
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -17,16 +18,18 @@ import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.textfield.TextInputEditText
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.activity.DrawerSettings
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
+import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 
 
-class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortSelectedListener {
+class AppDrawerFragment : Fragment(), OnSwipeInterface {
 
     private var appList = ArrayList<AppObject>()
     private lateinit var packageName: String
@@ -36,7 +39,8 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortS
     private lateinit var popupMenuDrawerButton: ImageButton
     private lateinit var adapter : AppAdapter
     private var startY = 0f
-    lateinit var prefs : SharedPreferences
+    private lateinit var viewModel: AppDrawerViewModel
+    private lateinit var appChangeReceiver: BroadcastReceiver
 
     // layout
     private lateinit var mDrawerGridView: GridView
@@ -55,15 +59,21 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortS
         searchInput = view.findViewById(R.id.search_input)
         mDrawerGridView = view.findViewById(R.id.m_grid_view)
 
-        fillGridView()
-        applySavedSort()
+        adapter = AppAdapter(requireContext(), appList)
+        mDrawerGridView.adapter = adapter
+
+        viewModel = ViewModelProvider(requireActivity())[AppDrawerViewModel::class.java]
+
+        viewModel.loadInstalledApps(requireContext())
+        viewModel.appList.observe(viewLifecycleOwner) { list ->
+            adapter.updateList(ArrayList(list))
+        }
 
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 adapter.filter.filter(s)
             }
-
             override fun afterTextChanged(s: Editable?) {}
         })
 
@@ -75,7 +85,6 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortS
                 if(menuItem.title == "Sort apps"){
 
                     val fragment = SortAppsFragment()
-                    fragment.sortListener = this
                     activity?.supportFragmentManager?.beginTransaction()
                         ?.add(R.id.main, fragment)
                         ?.addToBackStack(null)
@@ -111,16 +120,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortS
             false
         }
 
-        val sortFragment = childFragmentManager.findFragmentById(R.id.sort_main) as? SortAppsFragment
-        sortFragment?.sortListener = this
-
-
-
-    }
-
-    fun fillGridView(){
-        adapter = AppAdapter(requireContext(), appList)
-        mDrawerGridView.adapter = adapter
+        setupAppChangeReceiver()
     }
 
     fun GridView.isAtTop(): Boolean {
@@ -150,32 +150,26 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface, SortAppsFragment.OnSortS
         return appList
     }
 
-    override fun onSortSelected(sortedList: Int) {
-        val sortedList = when (sortedList) {
-            R.id.radio_alphabetical_asc -> SortTypes.ALPHABETICAL_ASC.sort(appList)
-            R.id.radio_alphabetical_desc -> SortTypes.ALPHABETICAL_DESC.sort(appList)
-            R.id.radio_custom -> SortTypes.CUSTOM.sort(appList)
-            else -> appList
+    private fun setupAppChangeReceiver() {
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package") // important!
         }
 
-        appList.clear()
-        appList.addAll(sortedList)
-        adapter.updateList(ArrayList(appList))
+        appChangeReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                // Reload the installed apps whenever a package changes
+                viewModel.loadInstalledApps(requireContext())
+            }
+        }
+
+        requireContext().registerReceiver(appChangeReceiver, filter)
     }
 
-    private fun applySavedSort() {
-        val prefs = requireContext().getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val savedSortId = prefs.getInt("sort_type_id", R.id.radio_alphabetical_asc)
-
-        val sortedList = when(savedSortId) {
-            R.id.radio_alphabetical_asc -> SortTypes.ALPHABETICAL_ASC.sort(appList)
-            R.id.radio_alphabetical_desc -> SortTypes.ALPHABETICAL_DESC.sort(appList)
-            R.id.radio_custom -> SortTypes.CUSTOM.sort(appList)
-            else -> appList
-        }
-
-        appList.clear()
-        appList.addAll(sortedList)
-        adapter.updateList(ArrayList(appList))
+    override fun onDestroyView() {
+        super.onDestroyView()
+        requireContext().unregisterReceiver(appChangeReceiver)
     }
 }

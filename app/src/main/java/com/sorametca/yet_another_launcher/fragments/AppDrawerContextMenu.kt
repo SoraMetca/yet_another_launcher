@@ -1,16 +1,30 @@
 package com.sorametca.yet_another_launcher.fragments
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.sorametca.yet_another_launcher.R
+import androidx.core.net.toUri
+import androidx.lifecycle.ViewModelProvider
+import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 
 class AppDrawerContextMenu : Fragment() {
 
+    private lateinit var uninstallButton: ImageButton
+    private lateinit var infoButton: ImageButton
+    private var packageName: String? = null
+
+    private lateinit var viewModel: AppDrawerViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -22,6 +36,37 @@ class AppDrawerContextMenu : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel = ViewModelProvider(requireActivity())[AppDrawerViewModel::class.java]
+        packageName = arguments?.getString("packageName")
+
+        uninstallButton = view.findViewById(R.id.uninstall_button)
+        infoButton = view.findViewById(R.id.info_button)
+
+        uninstallButton.setOnClickListener { uninstallApp() }
+        infoButton.setOnClickListener { displayAppInfo() }
+
+        setupMenuPositioning(view)
+        setupDismissOnOutsideClick(view)
+    }
+
+    private fun uninstallApp() {
+        if (packageName == null) {
+            Toast.makeText(requireContext(), "Uninstalling unsuccessful", Toast.LENGTH_LONG).show()
+        } else {
+            val intent = Intent(Intent.ACTION_DELETE)
+            intent.data = "package:$packageName".toUri()
+            startActivity(intent)
+        }
+        parentFragmentManager.popBackStack()
+    }
+
+    private fun displayAppInfo() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        intent.data = Uri.fromParts("package", packageName, null)
+        requireContext().startActivity(intent)
+    }
+
+    private fun setupMenuPositioning(view: View) {
         val menu = view.findViewById<LinearLayout>(R.id.menu_container)
 
         val x = arguments?.getInt("x") ?: 0
@@ -38,18 +83,16 @@ class AppDrawerContextMenu : Fragment() {
         var adjustedX = x
         var adjustedY = y + 100
 
-        if (adjustedX + menuWidth > screenWidth) {
-            adjustedX = screenWidth - menuWidth - 100
-        }
-        if (adjustedY + menuHeight > screenHeight) {
-            adjustedY = screenHeight - menuHeight - 220
-        }
+        if (adjustedX + menuWidth > screenWidth) adjustedX = screenWidth - menuWidth - 100
+        if (adjustedY + menuHeight > screenHeight) adjustedY = screenHeight - menuHeight - 220
 
         val params = menu.layoutParams as FrameLayout.LayoutParams
         params.leftMargin = adjustedX
         params.topMargin = adjustedY
         menu.layoutParams = params
+    }
 
+    private fun setupDismissOnOutsideClick(view: View) {
         view.findViewById<FrameLayout>(R.id.context_menu_root).setOnClickListener {
             parentFragmentManager.popBackStack()
         }
