@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest package="com.sorametca.yet_another_launcher"
-    xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
-    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.sorametca.yet_another_launcher">
+
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -11,23 +13,23 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.AppTheme">
+        android:theme="@style/AppTheme">
         <activity
             android:name="com.sorametca.yet_another_launcher.activity.SettingsActivity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.AppTheme" />
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name="com.sorametca.yet_another_launcher.activity.DrawerSettings"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.AppTheme" />
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name="com.sorametca.yet_another_launcher.activity.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.AppTheme"
             android:launchMode="singleTask"
-            android:stateNotNeeded="true">
+            android:stateNotNeeded="true"
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

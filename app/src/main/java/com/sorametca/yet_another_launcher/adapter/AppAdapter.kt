@@ -43,7 +43,8 @@ class AppAdapter(
         val icon: ImageView = v.findViewById(R.id.icon)
         val label: TextView = v.findViewById(R.id.label)
         icon.setImageDrawable(filteredList[position].icon)
-        label.text = filteredList[position].label
+        val app = filteredList[position]
+        label.text = getLabel(context, app.packageName, app.label)
 
         val mLinearLayout = v.findViewById<LinearLayout>(R.id.Layout)
 
@@ -55,7 +56,7 @@ class AppAdapter(
         var dragStartX = 0f
         var dragStartY = 0f
         val DRAG_THRESHOLD = 15f
-        mLinearLayout.setOnTouchListener { v, event ->
+        mLinearLayout.setOnTouchListener { v, event -> // TODO supress warning & move to method
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     dragStartX = event.x
@@ -119,14 +120,13 @@ class AppAdapter(
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val query = constraint?.toString()?.lowercase()?.trim() ?: ""
+                val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
+                val hidden = prefs.getStringSet("hidden_apps", emptySet()) ?: emptySet()
+
                 val results = FilterResults()
-                results.values = if (query.isEmpty()) {
-                    originalList
-                } else {
-                    originalList.filter {
-                        it.label.lowercase().contains(query)
-                    } as ArrayList<AppObject>
-                }
+                results.values = originalList.filter {
+                    it.packageName !in hidden && it.label.lowercase().contains(query)
+                } as ArrayList<AppObject>
                 return results
             }
 
@@ -138,8 +138,18 @@ class AppAdapter(
     }
 
     fun updateList(newList: List<AppObject>) {
-        filteredList.clear()
-        filteredList.addAll(newList)
+        filteredList = ArrayList(newList.filter { !isHidden(it.packageName) })
         notifyDataSetChanged()
+    }
+
+    fun getLabel(context: Context, packageName: String, defaultLabel: String): String {
+        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
+        return prefs.getString(packageName, defaultLabel) ?: defaultLabel
+    }
+
+    private fun isHidden(packageName: String): Boolean {
+        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
+        val hidden = prefs.getStringSet("hidden_apps", emptySet()) ?: emptySet()
+        return packageName in hidden
     }
 }

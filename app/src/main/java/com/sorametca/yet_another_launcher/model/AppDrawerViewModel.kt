@@ -29,6 +29,9 @@ class AppDrawerViewModel : ViewModel() {
             }
             .distinctBy { it.packageName }
 
+        val hidden = getHiddenApps(context)
+        apps = apps.filter { it.packageName !in hidden }
+
         val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
         val sortId = prefs.getInt("sort_type_id", R.id.radio_alphabetical_asc)
         apps = when (sortId) {
@@ -48,5 +51,19 @@ class AppDrawerViewModel : ViewModel() {
 
     fun setSortType(sortId: Int) {
         _sortTypeId.value = sortId
+    }
+
+    private fun getHiddenApps(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
+        return prefs.getStringSet("hidden_apps", emptySet()) ?: emptySet()
+    }
+
+    fun hideApp(context: Context, packageName: String) {
+        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
+        val hidden = prefs.getStringSet("hidden_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
+        hidden.add(packageName)
+        prefs.edit().putStringSet("hidden_apps", hidden).apply()
+
+        _appList.value = _appList.value?.filter { it.packageName != packageName }
     }
 }
