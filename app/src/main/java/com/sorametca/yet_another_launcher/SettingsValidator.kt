@@ -1,30 +1,28 @@
 package com.sorametca.yet_another_launcher
 import com.sorametca.yet_another_launcher.GestureAction
-class SettingsValidator {
-    var swipeToTop: Int? = null
-    var doubleTap: Int? = null
-    var longPress: Int? = null
 
-    constructor() {
-        this.swipeToTop = GestureAction.openAppList.ordinal
-        this.doubleTap = GestureAction.openHomeScreenSettings.ordinal
-    }
+// simple class for validating new settings, use changeGestureSettings,
+// it can throw an error if new value is used in different gesture, confirm changes
+// by overrideGestureSettings
+class SettingsValidator {
+    private val gestures = mutableMapOf(
+        "swipeToTop" to GestureAction.openAppList.ordinal,
+        "doubleTap" to GestureAction.openHomeScreenSettings.ordinal,
+        "longPress" to -1 // Default or null
+    )
     fun changeGestureSettings(settingName: String, newSettingValue: Int) {
-        when (settingName) {
-            "swipeToTop" -> {
-                if (newSettingValue == doubleTap) {
-                    throw error("gesture already in use")
-                } else {
-                    swipeToTop = newSettingValue
-                }
-            }
-            "doubleTap" -> {
-                if (newSettingValue == swipeToTop) {
-                    throw error("gesture already in use")
-                } else {
-                    doubleTap = newSettingValue
-                }
-            }
+        val conflict = gestures.entries.find { it.value == newSettingValue && it.key != settingName }
+        if (conflict != null) {
+            throw IllegalArgumentException("Value $newSettingValue is already used by ${conflict.key}")
         }
+        gestures[settingName] = newSettingValue
+        }
+    fun overrideGestureSettings(settingName: String, newSettingValue: Int) {
+        val conflict = gestures.entries.find { it.value == newSettingValue && it.key != settingName }
+        if (conflict != null) {
+            val currentTargetValue = gestures[settingName] ?: -1
+            gestures[conflict.key] = currentTargetValue
+        }
+        gestures[settingName] = newSettingValue
     }
 }
