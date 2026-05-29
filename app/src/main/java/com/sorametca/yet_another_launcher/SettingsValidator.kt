@@ -8,7 +8,7 @@ class SettingsValidator {
     private val gestures = mutableMapOf(
         "swipeToTop" to GestureAction.openAppList.ordinal,
         "doubleTap" to GestureAction.openHomeScreenSettings.ordinal,
-        "longPress" to -1 // Default or null
+        "longPress" to -1
     )
     fun changeGestureSettings(settingName: String, newSettingValue: Int) {
         val conflict = gestures.entries.find { it.value == newSettingValue && it.key != settingName }
