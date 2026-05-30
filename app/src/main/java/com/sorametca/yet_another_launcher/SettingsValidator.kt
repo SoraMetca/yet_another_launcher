@@ -5,7 +5,7 @@ import com.sorametca.yet_another_launcher.GestureAction
 // it can throw an error if new value is used in different gesture, confirm changes
 // by overrideGestureSettings
 class SettingsValidator {
-    private val gestures = mutableMapOf(
+     val gestures = mutableMapOf(
         "swipeToTop" to GestureAction.openAppList.ordinal,
         "doubleTap" to GestureAction.openHomeScreenSettings.ordinal,
         "longPress" to -1

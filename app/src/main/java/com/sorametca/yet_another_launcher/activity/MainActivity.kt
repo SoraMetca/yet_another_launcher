@@ -7,7 +7,9 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager.widget.ViewPager
+import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.SettingsValidator
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
@@ -21,6 +23,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // class variables
     private val homeAppList = ArrayList<AppObject>()
+    private val validator = SettingsValidator()
 
     // layout variables
     private lateinit var viewPager: ViewPager
@@ -79,13 +82,18 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         startActivity(intent)
     }
 
-
-    override fun onDoubleTap() {
+    fun openHomeScreenSettings(){
         if (supportFragmentManager.findFragmentByTag("home_screen") != null) return
         HomeScreenSettingsFragment().show(supportFragmentManager, "home_screen")
     }
-
-    override fun onSwipeToTop() {
+    override fun onDoubleTap() {
+        if(validator.gestures["doubleTap"] == GestureAction.openHomeScreenSettings.ordinal) {
+           openHomeScreenSettings()
+        }else if (validator.gestures["doubleTap"] == GestureAction.openAppList.ordinal){
+            openAppList()
+        }
+    }
+    fun openAppList(){
         if (supportFragmentManager.findFragmentByTag("app_drawer") != null) return
 
         val fragment = AppDrawerFragment()
@@ -99,6 +107,12 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             .replace(R.id.main, fragment, "app_drawer")
             .addToBackStack("app_drawer")
             .commit()
+    }
+    override fun onSwipeToTop() {
+        if(validator.gestures["swipeToTop"] == GestureAction.openAppList.ordinal) {
+            openAppList()
+        }else if(validator.gestures["swipeToTop"] == GestureAction.openHomeScreenSettings.ordinal)
+            openHomeScreenSettings()
     }
 
     fun itemPress(app: AppObject) {
