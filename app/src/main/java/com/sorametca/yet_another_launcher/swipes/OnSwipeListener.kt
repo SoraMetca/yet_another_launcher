@@ -24,7 +24,7 @@ abstract class OnSwipeListener(context: Context,
     // Except onFling, all must "return false" if Boolean return type
     // and "return" if no return type
     override fun onDown(e: MotionEvent): Boolean {
-        return false
+        return true
     }
 
     override fun onShowPress(e: MotionEvent) {
@@ -102,5 +102,8 @@ abstract class OnSwipeListener(context: Context,
     override fun onDoubleTap(e: MotionEvent): Boolean {
         mInterface.onDoubleTap()
         return true
+    }
+    override fun onLongPress(e: MotionEvent) {
+        mInterface.onLongPress(e)
     }
 }

@@ -1,16 +1,19 @@
 package com.sorametca.yet_another_launcher.activity
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsValidator
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
+import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
 import com.sorametca.yet_another_launcher.model.AppObject
@@ -23,7 +26,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // class variables
     private val homeAppList = ArrayList<AppObject>()
-    private val validator = SettingsValidator()
+    private lateinit var validator: SettingsValidator
 
     // layout variables
     private lateinit var viewPager: ViewPager
@@ -37,7 +40,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initializeHome()
-
+        validator = SettingsValidator(this.dataStore, lifecycleScope)
         val main = findViewById<View>(R.id.main)
         main.isClickable = true
         main.isFocusable = true
@@ -78,8 +81,6 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     override fun onLongPress(e: MotionEvent) {
-        val intent = Intent(this, SettingsActivity::class.java)
-        startActivity(intent)
     }
 
     fun openHomeScreenSettings(){
