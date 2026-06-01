@@ -2,6 +2,7 @@ package com.sorametca.yet_another_launcher.activity
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ResolveInfo
 import android.os.Bundle
 import android.view.DragEvent
 import android.view.MotionEvent
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // class variables
     private val homeAppList = ArrayList<AppObject>()
+    lateinit var appList: ArrayList<AppObject>
     private lateinit var validator: SettingsValidator
 
     // layout variables
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        appList = getInstalledAppList(this)
         initializeHome()
         validator = SettingsValidator(this.dataStore, lifecycleScope)
         val main = findViewById<View>(R.id.main)
@@ -64,7 +67,25 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             }
         }
     }
+    fun getInstalledAppList(context: Context): ArrayList<AppObject> {
+        val resultList = ArrayList<AppObject>()
+        val intent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        val packageManager = context.packageManager
+        val untreatedAppList: List<ResolveInfo> = packageManager.queryIntentActivities(intent, 0)
+        for (untreatedApp in untreatedAppList) {
+            val localPackageName = untreatedApp.activityInfo.packageName
+            val label = untreatedApp.activityInfo.loadLabel(packageManager).toString()
+            val icon = untreatedApp.activityInfo.loadIcon(packageManager)
+            val app = AppObject(localPackageName, label, icon)
+            if (!resultList.contains(app)) {
+                resultList.add(app)
+            }
+        }
 
+        return resultList
+    }
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         swipeListener.onTouch(null, ev)
         return super.dispatchTouchEvent(ev)
@@ -72,13 +93,14 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     private fun initializeHome() {
         val pagerAppList = ArrayList<PagerObject>()
-        val appList = ArrayList<AppObject>()
+        val homeAppList = ArrayList<AppObject>()
         pagerAppList.add(PagerObject(homeAppList))
-        pagerAppList.add(PagerObject(appList))
+        pagerAppList.add(PagerObject(homeAppList))
         viewPager = findViewById(R.id.ViewPager)
         mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList)
         viewPager.setAdapter(mViewPagerAdapter)
     }
+
 
     override fun onLongPress(e: MotionEvent) {
     }
@@ -97,7 +119,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     fun openAppList(){
         if (supportFragmentManager.findFragmentByTag("app_drawer") != null) return
 
-        val fragment = AppDrawerFragment()
+        val fragment = AppDrawerFragment(appList)
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(
                 R.anim.slide_in_up,

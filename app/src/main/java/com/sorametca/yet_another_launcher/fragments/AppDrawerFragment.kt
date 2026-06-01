@@ -29,10 +29,9 @@ import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 
 
-class AppDrawerFragment : Fragment(), OnSwipeInterface {
+class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipeInterface {
 
     // class variables
-    private var appList = ArrayList<AppObject>()
     private lateinit var packageName: String
 
     // helpers
@@ -55,7 +54,6 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        appList = getInstalledAppList()
         popupMenuDrawerButton = view.findViewById(R.id.popup_menu_drawer_button)
         searchInput = view.findViewById(R.id.search_input)
         mDrawerGridView = view.findViewById(R.id.m_grid_view)
@@ -141,30 +139,7 @@ class AppDrawerFragment : Fragment(), OnSwipeInterface {
     }
 
 
-    fun getInstalledAppList(): ArrayList<AppObject> {
-        var label: String
-        var icon: Drawable
-        var app: AppObject
 
-        val intent = Intent(Intent.ACTION_MAIN, null)
-        intent.addCategory(Intent.CATEGORY_LAUNCHER)
-        val untreatedAppList: List<ResolveInfo> =
-            requireContext().packageManager.queryIntentActivities(intent, 0)
-
-        for (untreatedApp in untreatedAppList) {
-            packageName = untreatedApp.activityInfo.packageName
-            label = untreatedApp.activityInfo.loadLabel(requireContext().packageManager).toString()
-            icon = untreatedApp.activityInfo.loadIcon(requireContext().packageManager)
-
-            app = AppObject(packageName, label, icon)
-
-            if (!appList.contains(app)) {
-                appList.add(app)
-            }
-        }
-
-        return appList
-    }
 
     private fun setupAppChangeReceiver() {
         val filter = IntentFilter().apply {
