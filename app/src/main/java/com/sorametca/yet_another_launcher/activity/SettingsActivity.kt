@@ -5,6 +5,7 @@ import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.adapter.SettingsAdapter
+import com.sorametca.yet_another_launcher.fragments.AboutFragment
 import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
 
 
@@ -74,7 +75,11 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 "About" -> {
-                    // TODO handle About click
+                    val fragment = AboutFragment()
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment, "fragment_about")
+                        .addToBackStack("fragment_about")
+                        .commit()
                 }
             }
         }

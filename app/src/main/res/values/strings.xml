@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">Yet Another Launcher</string>
     <string name="search">Search</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="version_no"><a href="https://github.com/SoraMetca/yet_another_launcher">version 0.2</a></string>
+
+    <string name="sorametca_github"><a href="https://github.com/SoraMetca">Sora Metca</a></string>
+    <string name="daraxtlar_github"><a href="https://github.com/Daraxtlar">Daraxtlar</a></string>
+
+    <string name="flaticons"><a href="https://www.flaticon.com/">Flaticon</a></string>
 </resources>
