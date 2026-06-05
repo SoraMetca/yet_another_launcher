@@ -8,4 +8,6 @@
     <string name="daraxtlar_github"><a href="https://github.com/Daraxtlar">Daraxtlar</a></string>
 
     <string name="flaticons"><a href="https://www.flaticon.com/">Flaticon</a></string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

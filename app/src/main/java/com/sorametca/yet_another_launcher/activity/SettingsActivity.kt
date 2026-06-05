@@ -7,6 +7,7 @@ import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.adapter.SettingsAdapter
 import com.sorametca.yet_another_launcher.fragments.AboutFragment
 import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
+import com.sorametca.yet_another_launcher.fragments.ProfilesFragment
 
 
 class SettingsActivity : AppCompatActivity() {
@@ -71,7 +72,11 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 "Import/Export Profiles" -> {
-                    // TODO handle Import/Export Profiles click
+                    val fragment = ProfilesFragment()
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment, "fragment_profiles")
+                        .addToBackStack("fragment_profiles")
+                        .commit()
                 }
 
                 "About" -> {
