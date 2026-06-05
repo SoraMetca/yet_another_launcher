@@ -1,17 +1,32 @@
 package com.sorametca.yet_another_launcher.activity
 
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.adapter.SettingsAdapter
 import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
 
 
 class SettingsActivity : AppCompatActivity() {
 
-    private val options = listOf("Home Screen", "Global Appearance", "Gestures", "Hidden Applications", "Import/Export Profiles", "About")
-    private lateinit var listView : ListView
+    var icons = listOf(
+        R.drawable.home,
+        R.drawable.global_appearance,
+        R.drawable.gestures,
+        R.drawable.hide_settings,
+        R.drawable.profiles,
+        R.drawable.about
+    )
+    private val titles = listOf(
+        "Home Screen",
+        "Global Appearance",
+        "Gestures",
+        "Hidden Applications",
+        "Import/Export Profiles",
+        "About"
+    )
+    private lateinit var listView: ListView
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,27 +35,32 @@ class SettingsActivity : AppCompatActivity() {
 
         listView = findViewById(R.id.hidden_apps_list_view)
 
-        val arr: ArrayAdapter<String> = ArrayAdapter(this,R.layout.support_simple_spinner_dropdown_item,options)
-
-        listView.adapter = arr
+        listView.adapter = SettingsAdapter(
+            this,
+            titles,
+            icons
+        )
 
         handleItemClicks()
     }
 
-    private fun handleItemClicks(){
+    private fun handleItemClicks() {
         listView.setOnItemClickListener { parent, view, position, id ->
-            val selectedOption = options[position]
+            val selectedOption = titles[position]
 
             when (selectedOption) {
                 "Home Screen" -> {
                     // TODO handle Home Screen click
                 }
+
                 "Global Appearance" -> {
                     // TODO handle Global Appearance click
                 }
+
                 "Gestures" -> {
                     // TODO handle Gestures click
                 }
+
                 "Hidden Applications" -> {
                     val fragment = HiddenApplicationsFragment()
                     supportFragmentManager.beginTransaction()
@@ -48,9 +68,11 @@ class SettingsActivity : AppCompatActivity() {
                         .addToBackStack("fragment_hidden_applications")
                         .commit()
                 }
+
                 "Import/Export Profiles" -> {
                     // TODO handle Import/Export Profiles click
                 }
+
                 "About" -> {
                     // TODO handle About click
                 }
