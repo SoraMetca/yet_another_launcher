@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
@@ -19,6 +20,7 @@ class SortAppsFragment : Fragment() {
 
     // layout variables
     private lateinit var radioGroup: RadioGroup
+    private lateinit var radioCustom : RadioButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,6 +33,7 @@ class SortAppsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         radioGroup = view.findViewById(R.id.sort_types)
+        radioCustom = view.findViewById(R.id.radio_custom)
 
         viewModel = ViewModelProvider(requireActivity())[AppDrawerViewModel::class.java]
 
@@ -42,20 +45,38 @@ class SortAppsFragment : Fragment() {
     }
 
     private fun setupRadioListener() {
+
+        radioCustom.setOnClickListener {
+            customOrderMode()
+        }
+
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
 
             saveSortMethodId(checkedId)
 
             val sortedList = when (checkedId) {
-                R.id.radio_alphabetical_asc -> viewModel.appList.value?.sortedBy { it.label }
-                R.id.radio_alphabetical_desc -> viewModel.appList.value?.sortedByDescending { it.label }
-                R.id.radio_custom -> viewModel.appList.value
-                else -> viewModel.appList.value
-            } ?: emptyList()
+                R.id.radio_alphabetical_asc ->
+                    viewModel.appList.value?.sortedBy { it.label }
 
-            viewModel.updateAppList(sortedList)
+                R.id.radio_alphabetical_desc ->
+                    viewModel.appList.value?.sortedByDescending { it.label }
+
+                R.id.radio_custom -> { null }
+
+                else -> viewModel.appList.value
+            }
+
+            sortedList?.let {
+                viewModel.updateAppList(it)
+            }
             viewModel.setSortType(checkedId)
         }
+    }
+
+    private fun customOrderMode() {
+        viewModel.setReorderMode(true)
+        viewModel.startReorder()
+        requireActivity().supportFragmentManager.popBackStack()
     }
 
     private fun getSavedSortMethodId(): Int {

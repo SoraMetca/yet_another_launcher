@@ -26,6 +26,8 @@ class AppAdapter(
 ) : BaseAdapter(), Filterable {
 
     private var filteredList: ArrayList<AppObject> = originalList
+    var reorderMode = false
+    var draggedPosition = -1
 
     override fun getCount(): Int = filteredList.size
     override fun getItem(position: Int): Any = filteredList[position]
@@ -49,7 +51,9 @@ class AppAdapter(
         val mLinearLayout = v.findViewById<LinearLayout>(R.id.Layout)
 
         mLinearLayout.setOnClickListener {
-            (context as MainActivity).itemPress(filteredList[position])
+            if(!reorderMode) {
+                (context as MainActivity).itemPress(filteredList[position])
+            }
         }
 
         var isLongPressed = false
@@ -110,6 +114,21 @@ class AppAdapter(
 
         mLinearLayout.setOnLongClickListener {
             isLongPressed = true
+
+            if (!reorderMode)
+                return@setOnLongClickListener false
+
+            draggedPosition = position
+
+            val data = ClipData.newPlainText("", "")
+
+            it.startDragAndDrop(
+                data,
+                View.DragShadowBuilder(it),
+                position,
+                0
+            )
+
             true
         }
 
