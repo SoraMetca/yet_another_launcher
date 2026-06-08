@@ -12,7 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.SettingsValidator
+import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     // class variables
     private val homeAppList = ArrayList<AppObject>()
     lateinit var appList: ArrayList<AppObject>
-    private lateinit var validator: SettingsValidator
+    private lateinit var validator: SettingsRepository
 
     // layout variables
     private lateinit var viewPager: ViewPager
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         setContentView(R.layout.activity_main)
         appList = getInstalledAppList(this)
         initializeHome()
-        validator = SettingsValidator(this.dataStore, lifecycleScope)
+        validator = SettingsRepository(this.dataStore, lifecycleScope)
         val main = findViewById<View>(R.id.main)
         main.isClickable = true
         main.isFocusable = true

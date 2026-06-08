@@ -2,31 +2,40 @@ package com.sorametca.yet_another_launcher.model
 
 import android.content.Context
 import android.content.Intent
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.room.util.copy
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.SettingsValidator
+import com.sorametca.yet_another_launcher.SettingsRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AppDrawerViewModel : ViewModel() {
+class AppDrawerViewModel(private val repository: SettingsRepository) : ViewModel() {
 
-    private val _appList = MutableLiveData<List<AppObject>>(emptyList())
-    private val _reorderMode = MutableLiveData(false)
-    val reorderMode: LiveData<Boolean> = _reorderMode
+    private val _appList = MutableStateFlow<List<AppObject>>(emptyList())
+    val labelsFlow = repository.labelsFlow
+    val hiddenApps: Flow<Set<String>> = repository.hiddenApps
+    val appList = _appList.asStateFlow()
+    private val _reorderMode = MutableStateFlow(false)
+    val reorderMode = _reorderMode.asStateFlow()
     private var reorderBackup: List<AppObject>? = null
-    val appList: LiveData<List<AppObject>> = _appList
-    private val _sortTypeId = MutableLiveData(R.id.radio_alphabetical_asc)
+    private var installedApps: List<AppObject> = emptyList()
 
-    fun loadInstalledApps(context: Context, settingsValidator: SettingsValidator) {
-        val intent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
+    fun loadInstalledApps(context: Context, settingsRepository: SettingsRepository) {
 
         viewModelScope.launch {
+
             val pm = context.packageManager
-            var apps = pm.queryIntentActivities(intent, 0)
+
+            val intent = Intent(Intent.ACTION_MAIN, null).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+            }
+
+            installedApps = pm.queryIntentActivities(intent, 0)
                 .map {
                     AppObject(
                         it.activityInfo.packageName,
@@ -36,21 +45,12 @@ class AppDrawerViewModel : ViewModel() {
                 }
                 .distinctBy { it.packageName }
 
-            val hidden = getHiddenApps(context)
-            apps = apps.filter { it.packageName !in hidden }
+            combine(repository.hiddenApps, repository.sortType) { hiddenApps, sortType -> var apps = installedApps.filter { it.packageName !in hiddenApps }
 
-            val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-            val sortId = prefs.getInt("sort_type_id", R.id.radio_alphabetical_asc)
-
-            apps = when (sortId) {
-                R.id.radio_alphabetical_asc -> apps.sortedBy { it.label }
-                R.id.radio_alphabetical_desc -> apps.sortedByDescending { it.label }
-                R.id.radio_custom -> settingsValidator.applyCustomOrder(apps)
-                else -> apps
+                apps
+            }.collect {
+                _appList.value = it
             }
-
-            _appList.value = apps
-            _sortTypeId.value = sortId
         }
     }
 
@@ -59,24 +59,10 @@ class AppDrawerViewModel : ViewModel() {
     }
 
     fun setSortType(sortId: Int) {
-        _sortTypeId.value = sortId
+        viewModelScope.launch {
+            repository.setSortType(sortId)
+        }
     }
-
-    private fun getHiddenApps(context: Context): Set<String> {
-        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
-        return prefs.getStringSet("hidden_apps", emptySet()) ?: emptySet()
-    }
-
-    fun hideApp(context: Context, packageName: String) {
-        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
-        val hidden =
-            prefs.getStringSet("hidden_apps", mutableSetOf())?.toMutableSet() ?: mutableSetOf()
-        hidden.add(packageName)
-        prefs.edit().putStringSet("hidden_apps", hidden).apply()
-
-        _appList.value = _appList.value?.filter { it.packageName != packageName }
-    }
-
 
     fun getReorderMode(): Boolean {
         return _reorderMode.value == true
@@ -87,12 +73,12 @@ class AppDrawerViewModel : ViewModel() {
     }
 
     fun startReorder() {
-        reorderBackup = _appList.value?.toList()
+        reorderBackup = _appList.value.toList()
         _reorderMode.value = true
     }
 
     fun moveApp(from: Int, to: Int) {
-        val list = _appList.value?.toMutableList() ?: return
+        val list = _appList.value.toMutableList()
 
         val item = list.removeAt(from)
         list.add(to, item)
@@ -107,5 +93,17 @@ class AppDrawerViewModel : ViewModel() {
 
         reorderBackup = null
         _reorderMode.value = false
+    }
+
+    fun hideApp(packageName: String?) {
+        viewModelScope.launch {
+            repository.hideApp(packageName)
+        }
+    }
+
+    fun unhideApp(packageName: String) {
+        viewModelScope.launch {
+            repository.unhideApp(packageName)
+        }
     }
 }

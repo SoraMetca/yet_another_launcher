@@ -66,4 +66,5 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.datastore:datastore-preferences:1.2.1")
+    implementation("androidx.fragment:fragment-ktx:1.8.9")
 }

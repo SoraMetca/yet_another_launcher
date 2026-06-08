@@ -17,15 +17,14 @@ import android.widget.Button
 import android.widget.GridView
 import android.widget.ImageButton
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
-import com.sorametca.yet_another_launcher.dataStore
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.textfield.TextInputEditText
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.SettingsValidator
+import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.activity.DrawerSettings
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
@@ -38,22 +37,20 @@ import kotlinx.coroutines.launch
 
 class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipeInterface {
 
-    // class variables
-
-    // helpers
-    private lateinit var adapter: AppAdapter
-    private lateinit var viewModel: AppDrawerViewModel
-    private lateinit var appChangeReceiver: BroadcastReceiver
-    private lateinit var settingsValidator : SettingsValidator
     private var backPressedCallback: OnBackPressedCallback? = null
 
-    // layout variables
+    private lateinit var viewModel: AppDrawerViewModel
+    private lateinit var adapter: AppAdapter
+    private lateinit var appChangeReceiver: BroadcastReceiver
+    private lateinit var settingsRepository: SettingsRepository
+
+
+    private lateinit var applyButton: Button
+    private lateinit var cancelButton: Button
     private lateinit var mDrawerGridView: GridView
-    private lateinit var searchInput: TextInputEditText
     private lateinit var popupMenuDrawerButton: ImageButton
+    private lateinit var searchInput: TextInputEditText
     private lateinit var reorderContainer: View
-    private lateinit var applyButton : Button
-    private lateinit var cancelButton : Button
 
 
     override fun onCreateView(
@@ -65,24 +62,16 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        settingsValidator = SettingsValidator(requireContext().dataStore, lifecycleScope)
-
-        popupMenuDrawerButton = view.findViewById(R.id.popup_menu_drawer_button)
-        searchInput = view.findViewById(R.id.search_input)
-        mDrawerGridView = view.findViewById(R.id.m_grid_view)
-        reorderContainer = view.findViewById(R.id.reorder_container)
         applyButton = view.findViewById(R.id.apply_button)
         cancelButton = view.findViewById(R.id.cancel_button)
+        mDrawerGridView = view.findViewById(R.id.m_grid_view)
+        popupMenuDrawerButton = view.findViewById(R.id.popup_menu_drawer_button)
+        searchInput = view.findViewById(R.id.search_input)
+        reorderContainer = view.findViewById(R.id.reorder_container)
 
         adapter = AppAdapter(requireContext(), appList)
-        mDrawerGridView.adapter = adapter
-
-        viewModel = ViewModelProvider(requireActivity())[AppDrawerViewModel::class.java]
-
-        viewModel.loadInstalledApps(requireContext(), settingsValidator)
-        viewModel.appList.observe(viewLifecycleOwner) { list ->
-            adapter.updateList(ArrayList(list))
-        }
+        settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
+        viewModel = AppDrawerViewModel(settingsRepository)
 
         searchSetup()
         popupDrawerSetup()
@@ -90,10 +79,13 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
         setupAppChangeReceiver()
         customOrder()
 
+        mDrawerGridView.adapter = adapter
+        viewModel.loadInstalledApps(requireContext(), settingsRepository)
+
         applyButton.setOnClickListener {
             lifecycleScope.launch {
-                settingsValidator.saveCustomOrder(
-                    viewModel.appList.value ?: emptyList()
+                settingsRepository.saveCustomOrder(
+                    viewModel.appList.value
                 )
 
                 viewModel.setReorderMode(false)
@@ -104,31 +96,43 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
             viewModel.cancelReorder()
         }
 
-        viewModel.appList.observe(viewLifecycleOwner) { apps ->
-            adapter.updateList(apps)
+        lifecycleScope.launchWhenStarted {
+            viewModel.appList.collect { apps ->
+                adapter.updateList(ArrayList(apps))
+            }
         }
 
-        viewModel.reorderMode.observe(viewLifecycleOwner) { enabled ->
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.reorderMode.collect { enabled ->
 
-            adapter.reorderMode = enabled
+                    adapter.reorderMode = enabled
 
-            searchInput.visibility =
-                if (enabled) View.GONE else View.VISIBLE
+                    searchInput.visibility = if (enabled) View.GONE else View.VISIBLE
+                    popupMenuDrawerButton.visibility = if (enabled) View.GONE else View.VISIBLE
+                    reorderContainer.visibility = if (enabled) View.VISIBLE else View.GONE
 
-            popupMenuDrawerButton.visibility =
-                if (enabled) View.GONE else View.VISIBLE
+                    if (enabled) {
+                        enableReorderBackHandling()
+                    } else {
+                        backPressedCallback?.remove()
+                        backPressedCallback = null
+                    }
+                }
+            }
+        }
 
-            reorderContainer.visibility =
-                if (enabled) View.VISIBLE else View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.labelsFlow.collect { labels ->
+                adapter.labels = labels
+                adapter.notifyDataSetChanged()
+            }
+        }
 
-            enableReorderBackHandling()
-
-            if (enabled) {
-                customOrder()
-                enableReorderBackHandling()
-            } else {
-                backPressedCallback?.remove()
-                backPressedCallback = null
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.hiddenApps.collect { hidden ->
+                adapter.hiddenApps = hidden
+                adapter.notifyDataSetChanged()
             }
         }
     }
@@ -256,7 +260,7 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
 
         appChangeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                viewModel.loadInstalledApps(requireContext(), settingsValidator)
+                viewModel.loadInstalledApps(requireContext(), settingsRepository)
             }
         }
 

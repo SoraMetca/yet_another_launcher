@@ -26,6 +26,7 @@ class AppAdapter(
 ) : BaseAdapter(), Filterable {
 
     private var filteredList: ArrayList<AppObject> = originalList
+    var labels: Map<String, String> = emptyMap()
     var reorderMode = false
     var draggedPosition = -1
 
@@ -33,7 +34,7 @@ class AppAdapter(
     override fun getItem(position: Int): Any = filteredList[position]
     override fun getItemId(position: Int): Long = position.toLong()
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val v: View = if (convertView == null) {
             val inflater =
                 context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -46,7 +47,7 @@ class AppAdapter(
         val label: TextView = v.findViewById(R.id.label)
         icon.setImageDrawable(filteredList[position].icon)
         val app = filteredList[position]
-        label.text = getLabel(context, app.packageName, app.label)
+        label.text = displayLabel(app)
 
         val mLinearLayout = v.findViewById<LinearLayout>(R.id.Layout)
 
@@ -94,7 +95,7 @@ class AppAdapter(
                         bundle.putInt("y", location[1])
                         bundle.putString("packageName", filteredList[position].packageName)
 
-                        val fragment = AppDrawerContextMenu()
+                        val fragment = AppDrawerContextMenu(filteredList)
                         fragment.arguments = bundle
 
                         val activity = context as? FragmentActivity
@@ -139,18 +140,23 @@ class AppAdapter(
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val query = constraint?.toString()?.lowercase()?.trim() ?: ""
-                val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
-                val hidden = prefs.getStringSet("hidden_apps", emptySet()) ?: emptySet()
 
                 val results = FilterResults()
                 results.values = originalList.filter {
-                    it.packageName !in hidden && it.label.lowercase().contains(query)
+                    it.packageName !in hiddenApps &&
+                            displayLabel(it).lowercase().contains(query)
                 } as ArrayList<AppObject>
+
                 return results
             }
 
-            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
-                filteredList = results?.values as? ArrayList<AppObject> ?: originalList
+            override fun publishResults(
+                constraint: CharSequence?,
+                results: FilterResults?
+            ) {
+                filteredList = results?.values as? ArrayList<AppObject>
+                    ?: originalList
+
                 notifyDataSetChanged()
             }
         }
@@ -160,15 +166,13 @@ class AppAdapter(
         filteredList = ArrayList(newList.filter { !isHidden(it.packageName) })
         notifyDataSetChanged()
     }
-
-    fun getLabel(context: Context, packageName: String, defaultLabel: String): String {
-        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
-        return prefs.getString(packageName, defaultLabel) ?: defaultLabel
-    }
+    var hiddenApps: Set<String> = emptySet()
 
     private fun isHidden(packageName: String): Boolean {
-        val prefs = context.getSharedPreferences("app_drawer_prefs", Context.MODE_PRIVATE)
-        val hidden = prefs.getStringSet("hidden_apps", emptySet()) ?: emptySet()
-        return packageName in hidden
+        return packageName in hiddenApps
+    }
+
+    private fun displayLabel(app: AppObject): String {
+        return labels[app.packageName] ?: app.label
     }
 }
