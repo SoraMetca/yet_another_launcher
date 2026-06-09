@@ -19,6 +19,7 @@ import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.fragments.AppDrawerContextMenu
 import com.sorametca.yet_another_launcher.model.AppObject
 import kotlin.math.abs
+import android.util.Log
 
 class AppAdapter(
     private val context: Context,

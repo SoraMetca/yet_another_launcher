@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sorametca.yet_another_launcher.model.AppObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -92,6 +93,14 @@ class SettingsRepository(
         }
     }
 
+    val customOrderFlow: Flow<List<String>> =
+        dataStore.data.map { prefs ->
+            prefs[CUSTOM_ORDER]
+                ?.split("|")
+                ?.filter { it.isNotBlank() }
+                ?: emptyList()
+        }
+
     suspend fun loadCustomOrder(): List<String> {
         val prefs = dataStore.data.first()
 
@@ -132,11 +141,6 @@ class SettingsRepository(
             it[HIDDEN_APPS] ?: emptySet()
         }
 
-    val sortType: Flow<Int> =
-        dataStore.data.map {
-            it[SORT_TYPE_ID] ?: R.id.radio_alphabetical_asc
-        }
-
     val labelsFlow: Flow<Map<String, String>> =
         dataStore.data.map { prefs ->
             prefs.asMap()
@@ -168,6 +172,10 @@ class SettingsRepository(
             prefs[HIDDEN_APPS] = hidden
         }
     }
+    val sortType: Flow<Int> = dataStore.data
+        .map { prefs ->
+            prefs[SORT_TYPE_ID] ?: R.id.radio_alphabetical_asc
+        }
 
     suspend fun setSortType(sortId: Int) {
         dataStore.edit {

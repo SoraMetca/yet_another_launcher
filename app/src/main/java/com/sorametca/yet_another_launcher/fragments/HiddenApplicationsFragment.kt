@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
@@ -20,7 +21,7 @@ class HiddenApplicationsFragment : Fragment() {
 
     private lateinit var hiddenAppAdapter: HiddenAppAdapter
     private lateinit var settingsRepository: SettingsRepository
-    private lateinit var viewModel: AppDrawerViewModel
+    private val viewModel: AppDrawerViewModel by activityViewModels()
 
     private lateinit var listView: ListView
 
@@ -40,7 +41,6 @@ class HiddenApplicationsFragment : Fragment() {
         listView = view.findViewById(R.id.hidden_apps_list_view)
 
         settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
-        viewModel = AppDrawerViewModel(settingsRepository)
 
 
         viewLifecycleOwner.lifecycleScope.launch {

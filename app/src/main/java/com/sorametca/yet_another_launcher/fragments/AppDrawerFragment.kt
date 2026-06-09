@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.DragEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -19,6 +20,7 @@ import android.widget.ImageButton
 import android.widget.PopupMenu
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -26,6 +28,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.activity.DrawerSettings
+import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.dataStore
@@ -39,10 +42,10 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
 
     private var backPressedCallback: OnBackPressedCallback? = null
 
-    private lateinit var viewModel: AppDrawerViewModel
+    private val viewModel: AppDrawerViewModel by activityViewModels()
     private lateinit var adapter: AppAdapter
     private lateinit var appChangeReceiver: BroadcastReceiver
-    private lateinit var settingsRepository: SettingsRepository
+    private val repository = MainActivity.RepositoryProvider.settingsRepository
 
 
     private lateinit var applyButton: Button
@@ -70,8 +73,6 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
         reorderContainer = view.findViewById(R.id.reorder_container)
 
         adapter = AppAdapter(requireContext(), appList)
-        settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
-        viewModel = AppDrawerViewModel(settingsRepository)
 
         searchSetup()
         popupDrawerSetup()
@@ -80,11 +81,11 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
         customOrder()
 
         mDrawerGridView.adapter = adapter
-        viewModel.loadInstalledApps(requireContext(), settingsRepository)
+        viewModel.loadInstalledApps(requireContext())
 
         applyButton.setOnClickListener {
             lifecycleScope.launch {
-                settingsRepository.saveCustomOrder(
+                repository.saveCustomOrder(
                     viewModel.appList.value
                 )
 
@@ -260,7 +261,7 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
 
         appChangeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                viewModel.loadInstalledApps(requireContext(), settingsRepository)
+                viewModel.loadInstalledApps(requireContext())
             }
         }
 

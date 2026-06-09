@@ -4,38 +4,35 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.util.copy
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.activity.MainActivity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class AppDrawerViewModel(private val repository: SettingsRepository) : ViewModel() {
+class AppDrawerViewModel() : ViewModel() {
 
     private val _appList = MutableStateFlow<List<AppObject>>(emptyList())
+    private val repository = MainActivity.RepositoryProvider.settingsRepository
     val labelsFlow = repository.labelsFlow
     val hiddenApps: Flow<Set<String>> = repository.hiddenApps
     val appList = _appList.asStateFlow()
     private val _reorderMode = MutableStateFlow(false)
     val reorderMode = _reorderMode.asStateFlow()
     private var reorderBackup: List<AppObject>? = null
-    private var installedApps: List<AppObject> = emptyList()
+    private val installedAppsFlow = MutableStateFlow<List<AppObject>>(emptyList())
 
-    fun loadInstalledApps(context: Context, settingsRepository: SettingsRepository) {
-
+    fun loadInstalledApps(context: Context) {
         viewModelScope.launch {
 
             val pm = context.packageManager
-
             val intent = Intent(Intent.ACTION_MAIN, null).apply {
                 addCategory(Intent.CATEGORY_LAUNCHER)
             }
 
-            installedApps = pm.queryIntentActivities(intent, 0)
+            val apps = pm.queryIntentActivities(intent, 0)
                 .map {
                     AppObject(
                         it.activityInfo.packageName,
@@ -45,27 +42,47 @@ class AppDrawerViewModel(private val repository: SettingsRepository) : ViewModel
                 }
                 .distinctBy { it.packageName }
 
-            combine(repository.hiddenApps, repository.sortType) { hiddenApps, sortType -> var apps = installedApps.filter { it.packageName !in hiddenApps }
+            installedAppsFlow.value = apps
 
-                apps
-            }.collect {
-                _appList.value = it
+            combine(
+                installedAppsFlow,
+                repository.hiddenApps,
+                repository.sortType,
+                repository.customOrderFlow,
+                _reorderMode
+            ) { installed, hidden, sortType, customOrder, reorderMode ->
+
+                if (reorderMode) {
+                    return@combine _appList.value
+                }
+
+                val visible = installed.filter { it.packageName !in hidden }
+
+                when (sortType) {
+                    R.id.radio_alphabetical_asc ->
+                        visible.sortedBy { it.label }
+
+                    R.id.radio_alphabetical_desc ->
+                        visible.sortedByDescending { it.label }
+
+                    R.id.radio_custom -> {
+                        val indexMap = customOrder.withIndex()
+                            .associate { it.value to it.index }
+
+                        visible.sortedBy { indexMap[it.packageName] ?: Int.MAX_VALUE }
+                    }
+
+                    else -> visible
+                }
             }
-        }
-    }
-
-    fun updateAppList(newList: List<AppObject>) {
-        _appList.value = newList
-    }
-
-    fun setSortType(sortId: Int) {
-        viewModelScope.launch {
-            repository.setSortType(sortId)
+                .collect {
+                    _appList.value = it
+                }
         }
     }
 
     fun getReorderMode(): Boolean {
-        return _reorderMode.value == true
+        return _reorderMode.value
     }
 
     fun setReorderMode(enabled: Boolean) {
@@ -87,10 +104,6 @@ class AppDrawerViewModel(private val repository: SettingsRepository) : ViewModel
     }
 
     fun cancelReorder() {
-        reorderBackup?.let {
-            _appList.value = it
-        }
-
         reorderBackup = null
         _reorderMode.value = false
     }

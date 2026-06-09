@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
@@ -29,7 +30,7 @@ class AppDrawerContextMenu(private val appList: ArrayList<AppObject>) : Fragment
     private var packageName: String? = null
 
     private lateinit var adapter: AppAdapter
-    private lateinit var viewModel: AppDrawerViewModel
+    private val viewModel: AppDrawerViewModel by activityViewModels()
     private lateinit var settingsRepository: SettingsRepository
 
     private lateinit var uninstallButton: ImageButton
@@ -58,7 +59,6 @@ class AppDrawerContextMenu(private val appList: ArrayList<AppObject>) : Fragment
 
         adapter = AppAdapter(requireContext(), appList)
         settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
-        viewModel = AppDrawerViewModel(settingsRepository)
 
         packageName = arguments?.getString("packageName")
 

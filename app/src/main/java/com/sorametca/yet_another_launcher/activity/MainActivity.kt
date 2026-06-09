@@ -37,6 +37,10 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     // helpers
     private lateinit var swipeListener: OnSwipeListener
 
+    object RepositoryProvider {
+        lateinit var settingsRepository: SettingsRepository
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +53,9 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         main.isFocusable = true
 
         swipeListener = object : OnSwipeListener(this, this) {}
+
+        RepositoryProvider.settingsRepository =
+            SettingsRepository(dataStore, lifecycleScope)
 
         main.setOnDragListener { v, event ->
             when (event.action) {

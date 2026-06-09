@@ -1,15 +1,19 @@
 package com.sorametca.yet_another_launcher.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import kotlinx.coroutines.flow.drop
@@ -21,8 +25,8 @@ class SortAppsFragment : Fragment() {
 
     private var sortId = 0
 
-    private lateinit var settingsRepository: SettingsRepository
-    private lateinit var viewModel: AppDrawerViewModel
+    private val repository = MainActivity.RepositoryProvider.settingsRepository
+    private val viewModel: AppDrawerViewModel by activityViewModels()
 
     private lateinit var radioCustom: RadioButton
     private lateinit var radioGroup: RadioGroup
@@ -43,11 +47,8 @@ class SortAppsFragment : Fragment() {
 
         setupRadioListener()
 
-        settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
-        viewModel = AppDrawerViewModel(settingsRepository)
-
         lifecycleScope.launch {
-            sortId = settingsRepository.getSavedSortMethodId(requireContext())
+            sortId = repository.getSavedSortMethodId(requireContext())
             radioGroup.check(sortId)
         }
     }
@@ -59,36 +60,18 @@ class SortAppsFragment : Fragment() {
         }
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
-
             lifecycleScope.launch {
-                settingsRepository.saveSortMethodId(requireContext(), sortId)
+                repository.saveSortMethodId(requireContext(), checkedId)
             }
-
-            val sortedList = when (checkedId) {
-                R.id.radio_alphabetical_asc -> viewModel.appList.value.sortedBy { it.label }
-
-                R.id.radio_alphabetical_desc -> viewModel.appList.value.sortedByDescending { it.label }
-
-                R.id.radio_custom -> null
-
-                else -> viewModel.appList.value
-            }
-
-            sortedList?.let {
-                viewModel.updateAppList(it)
-            }
-            viewModel.setSortType(checkedId)
         }
     }
 
     private fun customOrderMode() {
-        viewModel.reorderMode
-            .drop(1)
-            .onEach { enabled ->
-                if (enabled) {
-                    requireActivity().supportFragmentManager.popBackStack()
-                }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
+        viewModel.setReorderMode(true)
+        viewModel.startReorder()
+
+        requireActivity()
+            .supportFragmentManager
+            .popBackStack()
     }
 }
