@@ -31,6 +31,7 @@ import com.sorametca.yet_another_launcher.activity.DrawerSettings
 import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
+import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
@@ -136,6 +137,13 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
                 adapter.notifyDataSetChanged()
             }
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.hiddenApps.collect { hidden ->
+                adapter.hiddenApps = hidden
+                adapter.notifyDataSetChanged()
+            }
+        }
+
     }
 
     private fun enableReorderBackHandling() {
@@ -156,14 +164,16 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
     private fun customOrder() {
 
         mDrawerGridView.setOnDragListener { _, event ->
-
-            if (!viewModel.getReorderMode()) return@setOnDragListener true
+            val mode = viewModel.getReorderMode()
+            if (event.action == DragEvent.ACTION_DRAG_STARTED || event.action == DragEvent.ACTION_DROP) {
+           }
+            if (!mode) return@setOnDragListener false
 
             when (event.action) {
 
                 DragEvent.ACTION_DROP -> {
-
-                    val fromPosition = event.localState as? Int
+                    val dragData = event.localState as? DragAppData ?: return@setOnDragListener true
+                    val fromPosition = dragData.originPosition
                         ?: return@setOnDragListener true
 
                     val targetPosition = mDrawerGridView.pointToPosition(

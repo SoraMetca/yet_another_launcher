@@ -10,13 +10,12 @@
         android:id="@+id/icon"
         android:layout_width="60sp"
         android:layout_height="60sp"
-        android:layout_margin="10sp"
-        android:src="@mipmap/ic_launcher" />
+        android:layout_margin="10sp"/>
 
     <TextView
         android:id="@+id/label"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:shadowColor="@color/black"
         android:shadowRadius="10"
         android:text="App name"
