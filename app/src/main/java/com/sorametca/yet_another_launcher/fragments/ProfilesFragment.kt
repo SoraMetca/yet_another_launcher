@@ -8,17 +8,15 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.Switch
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.sorametca.yet_another_launcher.R
 
 // mostly placeholders so far
 class ProfilesFragment : Fragment() {
 
-    private lateinit var manualExport : TextView
-    private lateinit var importProfiles : TextView
+    private lateinit var manualExport: TextView
+    private lateinit var importProfiles: TextView
     private lateinit var automaticExportSwitch: Switch
-
 
 
     override fun onCreateView(

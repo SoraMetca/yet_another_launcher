@@ -14,12 +14,12 @@ class SettingsAdapter(
     context: Context,
     private val titles: List<String>,
     private val icons: List<Int>
-) : ArrayAdapter<String>(context, R.layout.support_simple_spinner_dropdown_item, titles) {
+) : ArrayAdapter<String>(context, R.layout.settings_item, titles) {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = (convertView as? TextView)
             ?: LayoutInflater.from(context)
-                .inflate(R.layout.support_simple_spinner_dropdown_item, parent, false) as TextView
+                .inflate(R.layout.settings_item, parent, false) as TextView
 
         view.text = titles[position]
 

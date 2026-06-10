@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:clickable="true">
 
     <View
@@ -11,24 +13,12 @@
         android:layout_height="0dp"
         android:background="#8A8A8A"
         android:backgroundTint="#A5333333"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <ImageButton
-        android:id="@+id/popup_menu_drawer_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="35dp"
-        android:layout_marginEnd="15dp"
-        android:layout_marginBottom="20dp"
-        android:background="?android:selectableItemBackground"
-        android:src="@drawable/dots"
-        app:layout_constraintBottom_toTopOf="@+id/m_grid_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/search_input"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- Normal mode UI -->
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/search_input"
@@ -36,26 +26,91 @@
         android:layout_height="39dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="35dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="12dp"
         android:background="@drawable/layout_bg"
         android:hint="@string/search"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toTopOf="@+id/m_grid_view"
-        app:layout_constraintEnd_toStartOf="@+id/popup_menu_drawer_button"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.052" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/popup_menu_drawer_button" />
+
+    <ImageButton
+        android:id="@+id/popup_menu_drawer_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:background="?android:selectableItemBackground"
+        android:src="@drawable/dots"
+        app:layout_constraintTop_toTopOf="@id/search_input"
+        app:layout_constraintBottom_toBottomOf="@id/search_input"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Reorder mode UI -->
+
+    <LinearLayout
+        android:id="@+id/reorder_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/drag_notice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Long press and drag apps to reorder"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/cancel_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cancel" />
+
+            <Button
+                android:id="@+id/apply_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Apply" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Fixed spacer so GridView doesn't move -->
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/top_content_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="95dp" />
+
+    <!-- Apps -->
 
     <GridView
         android:id="@+id/m_grid_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
         android:numColumns="4"
+        app:layout_constraintTop_toBottomOf="@id/top_content_guideline"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/popup_menu_drawer_button" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

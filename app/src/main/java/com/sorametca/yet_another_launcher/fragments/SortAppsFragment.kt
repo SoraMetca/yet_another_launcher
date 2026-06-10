@@ -1,24 +1,36 @@
 package com.sorametca.yet_another_launcher.fragments
 
-import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioButton
 import android.widget.RadioGroup
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.activity.MainActivity
+import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class SortAppsFragment : Fragment() {
 
-    // helpers
-    private lateinit var viewModel: AppDrawerViewModel
+    private var sortId = 0
 
-    // layout variables
+    private val repository = MainActivity.RepositoryProvider.settingsRepository
+    private val viewModel: AppDrawerViewModel by activityViewModels()
+
+    private lateinit var radioCustom: RadioButton
     private lateinit var radioGroup: RadioGroup
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,42 +43,35 @@ class SortAppsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         radioGroup = view.findViewById(R.id.sort_types)
-
-        viewModel = ViewModelProvider(requireActivity())[AppDrawerViewModel::class.java]
-
-        val savedSortId = getSavedSortMethodId()
-
-        radioGroup.check(savedSortId)
+        radioCustom = view.findViewById(R.id.radio_custom)
 
         setupRadioListener()
+
+        lifecycleScope.launch {
+            sortId = repository.getSavedSortMethodId(requireContext())
+            radioGroup.check(sortId)
+        }
     }
 
     private fun setupRadioListener() {
+
+        radioCustom.setOnClickListener {
+            customOrderMode()
+        }
+
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
-
-            saveSortMethodId(checkedId)
-
-            val sortedList = when (checkedId) {
-                R.id.radio_alphabetical_asc -> viewModel.appList.value?.sortedBy { it.label }
-                R.id.radio_alphabetical_desc -> viewModel.appList.value?.sortedByDescending { it.label }
-                R.id.radio_custom -> viewModel.appList.value
-                else -> viewModel.appList.value
-            } ?: emptyList()
-
-            viewModel.updateAppList(sortedList)
-            viewModel.setSortType(checkedId)
+            lifecycleScope.launch {
+                repository.saveSortMethodId(requireContext(), checkedId)
+            }
         }
     }
 
-    private fun getSavedSortMethodId(): Int {
-        return context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-            ?.getInt("sort_type_id", R.id.radio_alphabetical_asc)
-            ?: R.id.radio_alphabetical_asc
-    }
+    private fun customOrderMode() {
+        viewModel.setReorderMode(true)
+        viewModel.startReorder()
 
-    private fun saveSortMethodId(checkedId: Int) {
-        context?.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)?.edit {
-            putInt("sort_type_id", checkedId)
-        }
+        requireActivity()
+            .supportFragmentManager
+            .popBackStack()
     }
 }

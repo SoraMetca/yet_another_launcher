@@ -8,96 +8,77 @@
     android:clickable="true"
     tools:context=".fragments.SortAppsFragment">
 
+    <View
+        android:id="@+id/background_blur2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000" />
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <View
-            android:id="@+id/background_blur2"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:background="#8A8A8A"
-            android:backgroundTint="#C8333333"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <View
-            android:id="@+id/view2"
-            android:layout_width="0dp"
-            android:layout_height="318dp"
-            android:layout_marginStart="72dp"
-            android:layout_marginEnd="72dp"
-            android:background="#000000"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <RadioGroup
-            android:id="@+id/sort_types"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="80dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="80dp"
-            android:layout_marginBottom="207dp"
-            android:backgroundTint="#000000"
-            android:foregroundTint="@color/teal_200"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView">
-
-            <RadioButton
-                android:id="@+id/radio_alphabetical_asc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:buttonTint="#FFFFFF"
-                android:outlineAmbientShadowColor="#FFFFFF"
-                android:outlineSpotShadowColor="#FFFFFF"
-                android:shadowColor="#FFFFFF"
-                android:text="Alphabetically (ASC)"
-                android:textColor="@color/design_default_color_on_primary"
-                android:textSize="20sp" />
-
-            <RadioButton
-                android:id="@+id/radio_alphabetical_desc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:buttonTint="#FFFFFF"
-                android:text="Alphabetically (DESC)"
-                android:textColor="@color/design_default_color_background"
-                android:textSize="20sp" />
-
-            <RadioButton
-                android:id="@+id/radio_custom"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:buttonTint="#FFFFFF"
-                android:text="Custom"
-                android:textColor="@color/design_default_color_background"
-                android:textSize="20sp" />
-
-        </RadioGroup>
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/dialogContainer"
+            android:layout_width="320dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="13dp"
-            android:text="Sort apps"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toTopOf="@+id/radioGroup"
+            android:background="@drawable/bg_sort_dialog"
+            android:elevation="8dp"
+            android:orientation="vertical"
+            android:padding="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/view2" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Sort Apps"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/sort_types"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
+
+                <RadioButton
+                    android:id="@+id/radio_alphabetical_asc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@android:color/white"
+                    android:text="Alphabetically (A → Z)"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+
+                <RadioButton
+                    android:id="@+id/radio_alphabetical_desc"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:buttonTint="@android:color/white"
+                    android:text="Alphabetically (Z → A)"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+
+                <RadioButton
+                    android:id="@+id/radio_custom"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:buttonTint="@android:color/white"
+                    android:text="Custom Order"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp" />
+
+            </RadioGroup>
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
