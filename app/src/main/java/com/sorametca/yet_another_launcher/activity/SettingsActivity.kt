@@ -6,6 +6,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.adapter.SettingsAdapter
 import com.sorametca.yet_another_launcher.fragments.AboutFragment
+import com.sorametca.yet_another_launcher.fragments.AppDrawerSettingsFragment
+import com.sorametca.yet_another_launcher.fragments.AppearanceFragment
 import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
 import com.sorametca.yet_another_launcher.fragments.ProfilesFragment
 
@@ -21,7 +23,7 @@ class SettingsActivity : AppCompatActivity() {
         R.drawable.about
     )
     private val titles = listOf(
-        "Home Screen",
+        "App Drawer",
         "Global Appearance",
         "Gestures",
         "Hidden Applications",
@@ -47,20 +49,32 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun handleItemClicks() {
-        listView.setOnItemClickListener { parent, view, position, id ->
+        listView.setOnItemClickListener { _, _, position, _ ->
             val selectedOption = titles[position]
 
             when (selectedOption) {
-                "Home Screen" -> {
-                    // TODO handle Home Screen click
+                "App Drawer" -> { // TODO make it not dependent on titles
+                    val fragment = AppDrawerSettingsFragment()
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment, "fragment_app_drawer_settings")
+                        .addToBackStack("fragment_hidden_applications")
+                        .commit()
                 }
 
                 "Global Appearance" -> {
-                    // TODO handle Global Appearance click
+                    val fragment = AppearanceFragment()
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment, "fragment_appearance")
+                        .addToBackStack("fragment_hidden_applications")
+                        .commit()
                 }
 
                 "Gestures" -> {
-                    // TODO handle Gestures click
+                    val fragment = AppearanceFragment()
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main, fragment, "fragment_gestures")
+                        .addToBackStack("fragment_gestures")
+                        .commit()
                 }
 
                 "Hidden Applications" -> {
