@@ -205,12 +205,12 @@
                 android:textColor="@android:color/white"
                 android:textSize="18sp" />
 
-            <TextView
+            <Spinner
+                android:id="@+id/app_anim_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=">"
-                android:textColor="#AAAAAA"
-                android:textSize="20sp" />
+                android:minWidth="120dp"
+                android:spinnerMode="dropdown" />
         </LinearLayout>
 
         <View
@@ -234,7 +234,7 @@
                 android:textSize="18sp" />
 
             <Switch
-                android:id="@+id/show_status_bar_switch"
+                android:id="@+id/status_bar_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>

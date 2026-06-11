@@ -8,6 +8,7 @@ import com.sorametca.yet_another_launcher.adapter.SettingsAdapter
 import com.sorametca.yet_another_launcher.fragments.AboutFragment
 import com.sorametca.yet_another_launcher.fragments.AppDrawerSettingsFragment
 import com.sorametca.yet_another_launcher.fragments.AppearanceFragment
+import com.sorametca.yet_another_launcher.fragments.GesturesFragment
 import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
 import com.sorametca.yet_another_launcher.fragments.ProfilesFragment
 
@@ -70,7 +71,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
 
                 "Gestures" -> {
-                    val fragment = AppearanceFragment()
+                    val fragment = GesturesFragment()
                     supportFragmentManager.beginTransaction()
                         .replace(R.id.main, fragment, "fragment_gestures")
                         .addToBackStack("fragment_gestures")
