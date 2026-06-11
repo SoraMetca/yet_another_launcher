@@ -1,10 +1,9 @@
 package com.sorametca.yet_another_launcher.activity
 
 import android.os.Bundle
-import android.widget.ListView
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.adapter.SettingsAdapter
 import com.sorametca.yet_another_launcher.fragments.AboutFragment
 import com.sorametca.yet_another_launcher.fragments.AppDrawerSettingsFragment
 import com.sorametca.yet_another_launcher.fragments.AppearanceFragment
@@ -12,95 +11,91 @@ import com.sorametca.yet_another_launcher.fragments.GesturesFragment
 import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
 import com.sorametca.yet_another_launcher.fragments.ProfilesFragment
 
+// TODO replace static options with recyclerview
 
 class SettingsActivity : AppCompatActivity() {
 
-    var icons = listOf(
-        R.drawable.home,
-        R.drawable.global_appearance,
-        R.drawable.gestures,
-        R.drawable.hide_settings,
-        R.drawable.profiles,
-        R.drawable.about
-    )
-    private val titles = listOf(
-        "App Drawer",
-        "Global Appearance",
-        "Gestures",
-        "Hidden Applications",
-        "Import/Export Profiles",
-        "About"
-    )
-    private lateinit var listView: ListView
-
+    private lateinit var appDrawerOption: LinearLayout
+    private lateinit var appearanceOption: LinearLayout
+    private lateinit var gesturesOption: LinearLayout
+    private lateinit var hiddenApplicationOption : LinearLayout
+    private lateinit var profilesOption: LinearLayout
+    private lateinit var aboutOption: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        listView = findViewById(R.id.hidden_apps_list_view)
+        appDrawerOption = findViewById(R.id.app_drawer_option)
+        appearanceOption = findViewById(R.id.appearance_option)
+        gesturesOption = findViewById(R.id.gestures_option)
+        hiddenApplicationOption = findViewById(R.id.hidden_application_option)
+        profilesOption = findViewById(R.id.profiles_option)
+        aboutOption = findViewById(R.id.about_option)
 
-        listView.adapter = SettingsAdapter(
-            this,
-            titles,
-            icons
-        )
+        val options =
+            listOf(appDrawerOption, appearanceOption, gesturesOption, hiddenApplicationOption, profilesOption, aboutOption)
 
-        handleItemClicks()
+        listenersSetup(options)
     }
 
-    private fun handleItemClicks() {
-        listView.setOnItemClickListener { _, _, position, _ ->
-            val selectedOption = titles[position]
+    private fun listenersSetup(options: List<LinearLayout>) {
+        for (option in options) {
+            option.setOnClickListener {
+                handleItemClicks(option)
+            }
+        }
+    }
 
-            when (selectedOption) {
-                "App Drawer" -> { // TODO make it not dependent on titles
-                    val fragment = AppDrawerSettingsFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_app_drawer_settings")
-                        .addToBackStack("fragment_hidden_applications")
-                        .commit()
-                }
+    private fun handleItemClicks(option: LinearLayout) {
 
-                "Global Appearance" -> {
-                    val fragment = AppearanceFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_appearance")
-                        .addToBackStack("fragment_hidden_applications")
-                        .commit()
-                }
+        when (option) {
+            appDrawerOption -> {
+                val fragment = AppDrawerSettingsFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_app_drawer_settings")
+                    .addToBackStack("fragment_hidden_applications")
+                    .commit()
+            }
 
-                "Gestures" -> {
-                    val fragment = GesturesFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_gestures")
-                        .addToBackStack("fragment_gestures")
-                        .commit()
-                }
+            appearanceOption -> {
+                val fragment = AppearanceFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_appearance")
+                    .addToBackStack("fragment_hidden_applications")
+                    .commit()
+            }
 
-                "Hidden Applications" -> {
-                    val fragment = HiddenApplicationsFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_hidden_applications")
-                        .addToBackStack("fragment_hidden_applications")
-                        .commit()
-                }
+            gesturesOption -> {
+                val fragment = GesturesFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_gestures")
+                    .addToBackStack("fragment_gestures")
+                    .commit()
+            }
 
-                "Import/Export Profiles" -> {
-                    val fragment = ProfilesFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_profiles")
-                        .addToBackStack("fragment_profiles")
-                        .commit()
-                }
+            hiddenApplicationOption -> {
+                val fragment = HiddenApplicationsFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_hidden_applications")
+                    .addToBackStack("fragment_hidden_applications")
+                    .commit()
+            }
 
-                "About" -> {
-                    val fragment = AboutFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_about")
-                        .addToBackStack("fragment_about")
-                        .commit()
-                }
+            profilesOption -> {
+                val fragment = ProfilesFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_profiles")
+                    .addToBackStack("fragment_profiles")
+                    .commit()
+            }
+
+            aboutOption -> {
+                val fragment = AboutFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_about")
+                    .addToBackStack("fragment_about")
+                    .commit()
             }
         }
     }
