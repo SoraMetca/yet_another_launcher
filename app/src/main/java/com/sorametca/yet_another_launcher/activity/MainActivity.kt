@@ -1,5 +1,6 @@
 package com.sorametca.yet_another_launcher.activity
 
+import android.app.ActivityOptions
 import android.app.Dialog
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
@@ -26,11 +27,17 @@ import android.widget.TextView
 import android.widget.VideoView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
+import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
@@ -39,6 +46,13 @@ import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
 import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
+import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
+import com.sorametca.yet_another_launcher.settings.AppLaunchAnim
+import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
+import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
+import com.sorametca.yet_another_launcher.view.LauncherWidgetView
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import com.sorametca.yet_another_launcher.model.FolderObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
@@ -50,9 +64,15 @@ import java.util.Collections
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // Class variables
+    private val homeAppList = ArrayList<AppObject>()
+
+    private var appLaunchAnim = AppLaunchAnim.FADE_IN
+
+    lateinit var appList: ArrayList<AppObject>
 
     lateinit var appList: ArrayList<LauncherItem?>
     private lateinit var validator: SettingsRepository
+    private var hideStatusBar = false
 
     // Layout variables
     private lateinit var viewPager: ViewPager
@@ -66,10 +86,14 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private val APPWIDGET_HOST_ID = 1024
     private lateinit var mAppWidgetManager: AppWidgetManager
     private lateinit var mAppWidgetHost: AppWidgetHost
+
     companion object {
-        @Volatile var isAppDrawerOpen = false
-        @Volatile var isDraggingInProgress = false
+        @Volatile
+        var isAppDrawerOpen = false
+        @Volatile
+        var isDraggingInProgress = false
     }
+
     private val pickWidgetLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -114,9 +138,11 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             mAppWidgetHost.deleteAppWidgetId(appWidgetId)
         }
     }
+
     object RepositoryProvider {
         lateinit var settingsRepository: SettingsRepository
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -142,7 +168,24 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
         swipeListener = object : OnSwipeListener(this, this) {}
 
-        RepositoryProvider.settingsRepository = SettingsRepository(dataStore, lifecycleScope)
+        settingsRepository = SettingsRepository(dataStore, lifecycleScope)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.statusBarToggle.collect { shouldHide ->
+                    hideStatusBar = shouldHide
+
+                    val controller =
+                        WindowCompat.getInsetsController(window, window.decorView)
+
+                    if (shouldHide) {
+                        controller.hide(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        controller.show(WindowInsetsCompat.Type.statusBars())
+                    }
+                }
+            }
+        }
 
         main.setOnDragListener { v, event ->
             when (event.action) {
@@ -150,6 +193,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                     isDraggingInProgress = true
                     true
                 }
+
                 DragEvent.ACTION_DRAG_ENTERED -> true
                 DragEvent.ACTION_DRAG_EXITED -> true
                 DragEvent.ACTION_DROP -> {
@@ -167,10 +211,12 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                     )
                     true
                 }
+
                 DragEvent.ACTION_DRAG_ENDED -> {
                     isDraggingInProgress = false
                     true
                 }
+
                 else -> false
             }
         }
@@ -319,7 +365,8 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         appList[targetPosition] = newFolder
     }
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        val appDrawerActive = supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
+        val appDrawerActive =
+            supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
 
         if (appDrawerActive) {
             return super.dispatchTouchEvent(ev)
@@ -346,6 +393,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
         pickWidgetLauncher.launch(pickIntent)
     }
+
     private fun createWidget(appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo?) {
         val currentPosition = viewPager.currentItem
         if (::mViewPagerAdapter.isInitialized && currentPosition < mViewPagerAdapter.count) {
@@ -394,17 +442,49 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     fun itemPress(app: AppObject) {
-        val launchAppIntent =
-            applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
-        if (launchAppIntent != null) {
-            applicationContext.startActivity(launchAppIntent)
-        }
+
+         lifecycleScope.launch {
+
+             val anim = settingsRepository
+                 .getLaunchAnim(this@MainActivity)
+                 .first()
+
+             val selectedAnim = when (anim) {
+                 AppLaunchAnim.NONE -> R.anim.static_background
+                 AppLaunchAnim.FADE_IN -> R.anim.fade_in
+                 AppLaunchAnim.ZOOM_IN -> R.anim.zoom_in
+                 AppLaunchAnim.SLIDE_BOTTOM -> R.anim.slide_in_bottom
+                 AppLaunchAnim.SLIDE_TOP -> R.anim.slide_in_top
+                 AppLaunchAnim.ENTER -> R.anim.enter_in
+             }
+
+             val options = ActivityOptions.makeCustomAnimation(
+                 this@MainActivity,
+                 selectedAnim,
+                 R.anim.static_background
+             )
+
+             val launchAppIntent =
+                 applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
+             if (launchAppIntent != null) {
+                 applicationContext.startActivity(launchAppIntent, options.toBundle())
+             }
+         }
     }
 
     fun collapseFragment() {
         isAppDrawerOpen = false
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        if (hasFocus && hideStatusBar) {
+            WindowCompat.getInsetsController(window, window.decorView)
+                .hide(WindowInsetsCompat.Type.statusBars())
         }
     }
 }

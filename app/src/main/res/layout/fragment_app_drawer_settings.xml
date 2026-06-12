@@ -119,12 +119,12 @@
                 android:textColor="@android:color/white"
                 android:textSize="18sp" />
 
-            <TextView
+            <Spinner
+                android:id="@+id/drawer_style_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=">"
-                android:textColor="#AAAAAA"
-                android:textSize="20sp" />
+                android:minWidth="120dp"
+                android:spinnerMode="dropdown" />
         </LinearLayout>
 
         <View

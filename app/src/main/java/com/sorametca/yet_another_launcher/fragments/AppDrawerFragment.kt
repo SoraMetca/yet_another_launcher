@@ -33,6 +33,8 @@ import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
+import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import kotlinx.coroutines.launch
 
@@ -94,6 +96,15 @@ class AppDrawerFragment(var appList: ArrayList<LauncherItem?>) : Fragment(), OnS
 
         cancelButton.setOnClickListener {
             viewModel.cancelReorder()
+        }
+
+        lifecycleScope.launch {
+            repository.getDrawerStyle(requireContext())
+                .collect { style ->
+                    adapter.setDrawerStyle(style)
+                    if (style == AppDrawerStyle.GRID) mDrawerGridView.numColumns = 4 else mDrawerGridView.numColumns = 1
+                    adapter.notifyDataSetChanged()
+                }
         }
 
         lifecycleScope.launchWhenStarted {
