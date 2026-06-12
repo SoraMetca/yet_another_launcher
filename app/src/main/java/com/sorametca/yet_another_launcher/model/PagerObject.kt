@@ -1,9 +1,11 @@
 package com.sorametca.yet_another_launcher.model
 
-class PagerObject(private var appList: ArrayList<AppObject>) {
+import com.sorametca.yet_another_launcher.interfaces.LauncherItem
+
+class PagerObject(private var appList: ArrayList<LauncherItem?>) {
     private val widgetIds = ArrayList<Int>()
 
-    fun getAppList(): ArrayList<AppObject> {
+    fun getAppList(): ArrayList<LauncherItem?> {
         return appList
     }
 

@@ -1,5 +1,6 @@
 package com.sorametca.yet_another_launcher.activity
 
+import android.app.Dialog
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
@@ -7,11 +8,19 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.widget.GridView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -19,14 +28,17 @@ import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
+import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
+import com.sorametca.yet_another_launcher.model.FolderObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.view.LauncherWidgetView
 import java.util.Collections
@@ -34,8 +46,8 @@ import java.util.Collections
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // Class variables
-    private val homeAppList = ArrayList<AppObject>()
-    lateinit var appList: ArrayList<AppObject>
+
+    lateinit var appList: ArrayList<LauncherItem?>
     private lateinit var validator: SettingsRepository
 
     // Layout variables
@@ -44,6 +56,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // Helpers
     private lateinit var swipeListener: OnSwipeListener
+    private var currentFolderDialog: Dialog? = null
 
     // Widget Management Components
     private val APPWIDGET_HOST_ID = 1024
@@ -137,14 +150,13 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                 DragEvent.ACTION_DRAG_EXITED -> true
                 DragEvent.ACTION_DROP -> {
                     isDraggingInProgress = false
-                    val dragData = event.localState as? DragAppData ?: return@setOnDragListener true
-                    val app = dragData.appObject
+                    val dragLocalState = event.localState ?: return@setOnDragListener true
 
                     val currentWorkspacePage = viewPager.currentItem
 
                     mViewPagerAdapter.addAppToPage(
                         currentWorkspacePage,
-                        app,
+                        dragLocalState,
                         event.x,
                         event.y,
                         v
@@ -159,6 +171,55 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             }
         }
     }
+    fun openFolder(folder: FolderObject) {
+        currentFolderDialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+            val bgDrawable = GradientDrawable().apply {
+                setColor(Color.parseColor("#DD111111"))
+                cornerRadius = 48f
+            }
+
+            val layout = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                background = bgDrawable
+                setPadding(48, 48, 48, 48)
+                layoutParams = ViewGroup.LayoutParams(
+                    (resources.displayMetrics.widthPixels * 0.85).toInt(),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            val titleView = TextView(this@MainActivity).apply {
+                text = folder.folderLabel
+                textSize = 20f
+                setTextColor(Color.WHITE)
+                setPadding(0, 0, 0, 32)
+                textAlignment = android.view.View.TEXT_ALIGNMENT_CENTER
+            }
+
+            val gridView = GridView(this@MainActivity).apply {
+                numColumns = 4
+                verticalSpacing = 32
+            }
+
+            val folderAppsList = ArrayList<LauncherItem?>(folder.apps)
+            val adapter = AppAdapter(this@MainActivity, folderAppsList)
+            gridView.adapter = adapter
+
+            layout.addView(titleView)
+            layout.addView(gridView)
+            setContentView(layout)
+        }
+
+        currentFolderDialog?.show()
+    }
+
+    fun closeFolder() {
+        currentFolderDialog?.dismiss()
+        currentFolderDialog = null
+    }
 
     override fun onStart() {
         super.onStart()
@@ -170,8 +231,8 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         mAppWidgetHost.stopListening()
     }
 
-    fun getInstalledAppList(context: Context): ArrayList<AppObject> {
-        val resultList = ArrayList<AppObject>()
+    fun getInstalledAppList(context: Context): ArrayList<LauncherItem?> {
+        val resultList = ArrayList<LauncherItem?>()
         val intent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
@@ -188,7 +249,21 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
         return resultList
     }
-
+    private fun createFolderAtTarget(
+        targetPosition: Int,
+        targetApp: AppObject,
+        draggedApp: AppObject,
+        appList: ArrayList<LauncherItem?>
+    ) {
+        if (targetApp.packageName == draggedApp.packageName) return
+        val newFolder = FolderObject(
+            id = "folder_${System.currentTimeMillis()}",
+            folderLabel = "Folder"
+        )
+        newFolder.apps.add(targetApp)
+        newFolder.apps.add(draggedApp)
+        appList[targetPosition] = newFolder
+    }
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val appDrawerActive = supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
 
@@ -201,10 +276,10 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     private fun initializeHome() {
         val pagerAppList = ArrayList<PagerObject>()
-        val homeAppList = ArrayList<AppObject?>(Collections.nCopies(24, null))
-        val homeAppList2 = ArrayList<AppObject?>(Collections.nCopies(24, null))
-        pagerAppList.add(PagerObject(homeAppList as ArrayList<AppObject>))
-        pagerAppList.add(PagerObject(homeAppList2 as ArrayList<AppObject>))
+        val homeAppList = ArrayList<LauncherItem?>(Collections.nCopies(24, null))
+        val homeAppList2 = ArrayList<LauncherItem?>(Collections.nCopies(24, null))
+        pagerAppList.add(PagerObject(homeAppList))
+        pagerAppList.add(PagerObject(homeAppList2))
         viewPager = findViewById(R.id.ViewPager)
         mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList, mAppWidgetHost)
         viewPager.setAdapter(mViewPagerAdapter)
