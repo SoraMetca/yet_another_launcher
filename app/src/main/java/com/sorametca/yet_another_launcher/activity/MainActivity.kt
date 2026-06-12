@@ -202,8 +202,9 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private fun initializeHome() {
         val pagerAppList = ArrayList<PagerObject>()
         val homeAppList = ArrayList<AppObject?>(Collections.nCopies(24, null))
+        val homeAppList2 = ArrayList<AppObject?>(Collections.nCopies(24, null))
         pagerAppList.add(PagerObject(homeAppList as ArrayList<AppObject>))
-        pagerAppList.add(PagerObject(homeAppList))
+        pagerAppList.add(PagerObject(homeAppList2 as ArrayList<AppObject>))
         viewPager = findViewById(R.id.ViewPager)
         mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList, mAppWidgetHost)
         viewPager.setAdapter(mViewPagerAdapter)
