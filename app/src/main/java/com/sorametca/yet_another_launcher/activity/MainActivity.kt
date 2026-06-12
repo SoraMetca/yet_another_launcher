@@ -8,17 +8,21 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.os.Bundle
-import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
 import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
@@ -29,6 +33,7 @@ import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.view.LauncherWidgetView
+import kotlinx.coroutines.launch
 import java.util.Collections
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
@@ -37,6 +42,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private val homeAppList = ArrayList<AppObject>()
     lateinit var appList: ArrayList<AppObject>
     private lateinit var validator: SettingsRepository
+    private var hideStatusBar = false
 
     // Layout variables
     private lateinit var viewPager: ViewPager
@@ -49,10 +55,14 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private val APPWIDGET_HOST_ID = 1024
     private lateinit var mAppWidgetManager: AppWidgetManager
     private lateinit var mAppWidgetHost: AppWidgetHost
+
     companion object {
-        @Volatile var isAppDrawerOpen = false
-        @Volatile var isDraggingInProgress = false
+        @Volatile
+        var isAppDrawerOpen = false
+        @Volatile
+        var isDraggingInProgress = false
     }
+
     private val pickWidgetLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -97,9 +107,11 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             mAppWidgetHost.deleteAppWidgetId(appWidgetId)
         }
     }
+
     object RepositoryProvider {
         lateinit var settingsRepository: SettingsRepository
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -125,7 +137,24 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
         swipeListener = object : OnSwipeListener(this, this) {}
 
-        RepositoryProvider.settingsRepository = SettingsRepository(dataStore, lifecycleScope)
+        settingsRepository = SettingsRepository(dataStore, lifecycleScope)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.statusBarToggle.collect { shouldHide ->
+                    hideStatusBar = shouldHide
+
+                    val controller =
+                        WindowCompat.getInsetsController(window, window.decorView)
+
+                    if (shouldHide) {
+                        controller.hide(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        controller.show(WindowInsetsCompat.Type.statusBars())
+                    }
+                }
+            }
+        }
 
         main.setOnDragListener { v, event ->
             when (event.action) {
@@ -133,6 +162,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                     isDraggingInProgress = true
                     true
                 }
+
                 DragEvent.ACTION_DRAG_ENTERED -> true
                 DragEvent.ACTION_DRAG_EXITED -> true
                 DragEvent.ACTION_DROP -> {
@@ -151,10 +181,12 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                     )
                     true
                 }
+
                 DragEvent.ACTION_DRAG_ENDED -> {
                     isDraggingInProgress = false
                     true
                 }
+
                 else -> false
             }
         }
@@ -190,7 +222,8 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        val appDrawerActive = supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
+        val appDrawerActive =
+            supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
 
         if (appDrawerActive) {
             return super.dispatchTouchEvent(ev)
@@ -216,6 +249,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
         pickWidgetLauncher.launch(pickIntent)
     }
+
     private fun createWidget(appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo?) {
         val currentPosition = viewPager.currentItem
         if (::mViewPagerAdapter.isInitialized && currentPosition < mViewPagerAdapter.count) {
@@ -275,6 +309,15 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         isAppDrawerOpen = false
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        if (hasFocus && hideStatusBar) {
+            WindowCompat.getInsetsController(window, window.decorView)
+                .hide(WindowInsetsCompat.Type.statusBars())
         }
     }
 }

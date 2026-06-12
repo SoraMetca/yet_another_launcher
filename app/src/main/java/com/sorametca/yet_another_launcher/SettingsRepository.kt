@@ -224,6 +224,11 @@ class SettingsRepository(
 
     // show status bar toggle
 
+    val statusBarToggle: Flow<Boolean> =
+        dataStore.data.map { prefs ->
+            prefs[STATUS_BAR_TOGGLE] ?: false
+        }
+
     fun getStatusBarToggle(context: Context): Flow<Boolean> {
         return context.dataStore.data.map { prefs ->
             prefs[STATUS_BAR_TOGGLE] ?: false
