@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sorametca.yet_another_launcher.model.AppObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -32,6 +31,7 @@ class SettingsRepository(
     val CUSTOM_ORDER = stringPreferencesKey("custom_order")
     val HIDDEN_APPS = stringSetPreferencesKey("hidden_apps")
     val SORT_TYPE_ID = intPreferencesKey("sort_type_id")
+    val APP_ANIM = stringPreferencesKey("app_anim")
 
     suspend fun saveGestureMap(map: Map<String, Int>) {
         dataStore.edit { prefs ->
@@ -101,41 +101,6 @@ class SettingsRepository(
                 ?: emptyList()
         }
 
-    suspend fun loadCustomOrder(): List<String> {
-        val prefs = dataStore.data.first()
-
-        return prefs[CUSTOM_ORDER]
-            ?.split("|")
-            ?.filter { it.isNotBlank() }
-            ?: emptyList()
-    }
-
-    suspend fun applyCustomOrder(
-        apps: List<AppObject>
-    ): List<AppObject> {
-
-        val savedOrder = loadCustomOrder()
-
-        if (savedOrder.isEmpty()) {
-            return apps
-        }
-
-        val appMap = apps.associateBy { it.packageName }
-
-        val ordered = mutableListOf<AppObject>()
-
-        savedOrder.forEach { packageName ->
-            appMap[packageName]?.let(ordered::add)
-        }
-
-        apps.forEach {
-            if (it.packageName !in savedOrder) {
-                ordered.add(it)
-            }
-        }
-
-        return ordered
-    }
     val hiddenApps: Flow<Set<String>> =
         dataStore.data.map {
             it[HIDDEN_APPS] ?: emptySet()
@@ -177,12 +142,6 @@ class SettingsRepository(
             prefs[SORT_TYPE_ID] ?: R.id.radio_alphabetical_asc
         }
 
-    suspend fun setSortType(sortId: Int) {
-        dataStore.edit {
-            it[SORT_TYPE_ID] = sortId
-        }
-    }
-
     suspend fun getSavedSortMethodId(context: Context): Int {
         return context.dataStore.data
             .map { prefs ->
@@ -214,4 +173,22 @@ class SettingsRepository(
             prefs.remove(stringPreferencesKey("label_$packageName"))
         }
     }
+
+    val appAnimType: Flow<Any> = dataStore.data
+        .map { prefs ->
+            prefs[APP_ANIM] ?: R.anim.fade_in
+        }
+
+//    suspend fun getAnimType(): Flow<Any> {
+//        return context.dataStore.data
+//            .map { prefs ->
+//                prefs[APP_ANIM] ?: R.anim.fade_in
+//            }
+//    }
+
+//    suspend fun setLabel(anim : Any) {
+//        dataStore.edit { prefs ->
+//            prefs[APP_ANIM] = anim
+//        }
+//    }
 }

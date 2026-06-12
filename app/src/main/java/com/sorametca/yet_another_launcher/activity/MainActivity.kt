@@ -1,18 +1,25 @@
 package com.sorametca.yet_another_launcher.activity
 
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
+import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
@@ -21,59 +28,148 @@ import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
-
+import com.sorametca.yet_another_launcher.view.LauncherWidgetView
+import java.util.Collections
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
-    // class variables
+    // Class variables
     private val homeAppList = ArrayList<AppObject>()
     lateinit var appList: ArrayList<AppObject>
     private lateinit var validator: SettingsRepository
 
-    // layout variables
+    // Layout variables
     private lateinit var viewPager: ViewPager
     private lateinit var mViewPagerAdapter: ViewPagerAdapter
 
-    // helpers
+    // Helpers
     private lateinit var swipeListener: OnSwipeListener
 
+    // Widget Management Components
+    private val APPWIDGET_HOST_ID = 1024
+    private lateinit var mAppWidgetManager: AppWidgetManager
+    private lateinit var mAppWidgetHost: AppWidgetHost
+    companion object {
+        @Volatile var isAppDrawerOpen = false
+        @Volatile var isDraggingInProgress = false
+    }
+    private val pickWidgetLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        val appWidgetId = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
+
+        if (result.resultCode == RESULT_OK) {
+            if (appWidgetId != -1) {
+                val appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId)
+
+                if (appWidgetInfo == null) {
+                    mAppWidgetHost.deleteAppWidgetId(appWidgetId)
+                    return@registerForActivityResult
+                }
+
+                if (appWidgetInfo.configure != null) {
+                    val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
+                        component = appWidgetInfo.configure
+                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                    }
+                    configureWidgetLauncher.launch(intent)
+                } else {
+                    createWidget(appWidgetId, appWidgetInfo)
+                }
+            }
+        } else if (result.resultCode == RESULT_CANCELED && appWidgetId != -1) {
+            mAppWidgetHost.deleteAppWidgetId(appWidgetId)
+        }
+    }
+    private val configureWidgetLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        val appWidgetId = data?.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1) ?: -1
+
+        if (result.resultCode == RESULT_OK) {
+            if (appWidgetId != -1) {
+                val appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId)
+                createWidget(appWidgetId, appWidgetInfo)
+            }
+        } else if (result.resultCode == RESULT_CANCELED && appWidgetId != -1) {
+            mAppWidgetHost.deleteAppWidgetId(appWidgetId)
+        }
+    }
     object RepositoryProvider {
         lateinit var settingsRepository: SettingsRepository
     }
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        mAppWidgetManager = AppWidgetManager.getInstance(applicationContext)
+        mAppWidgetHost = object : AppWidgetHost(applicationContext, APPWIDGET_HOST_ID) {
+            override fun onCreateView(
+                context: Context,
+                appWidgetId: Int,
+                appWidgetInfo: AppWidgetProviderInfo?
+            ): AppWidgetHostView {
+                return LauncherWidgetView(context)
+            }
+        }
+
         appList = getInstalledAppList(this)
         initializeHome()
         validator = SettingsRepository(this.dataStore, lifecycleScope)
+
         val main = findViewById<View>(R.id.main)
         main.isClickable = true
         main.isFocusable = true
 
         swipeListener = object : OnSwipeListener(this, this) {}
 
-        RepositoryProvider.settingsRepository =
-            SettingsRepository(dataStore, lifecycleScope)
+        RepositoryProvider.settingsRepository = SettingsRepository(dataStore, lifecycleScope)
 
         main.setOnDragListener { v, event ->
             when (event.action) {
-                DragEvent.ACTION_DRAG_STARTED -> true
+                DragEvent.ACTION_DRAG_STARTED -> {
+                    isDraggingInProgress = true
+                    true
+                }
                 DragEvent.ACTION_DRAG_ENTERED -> true
                 DragEvent.ACTION_DRAG_EXITED -> true
                 DragEvent.ACTION_DROP -> {
-                    val app = event.localState as AppObject
-                    homeAppList.add(app)
-                    mViewPagerAdapter.notifyGridChanged()
+                    isDraggingInProgress = false
+                    val dragData = event.localState as? DragAppData ?: return@setOnDragListener true
+                    val app = dragData.appObject
+
+                    val currentWorkspacePage = viewPager.currentItem
+
+                    mViewPagerAdapter.addAppToPage(
+                        currentWorkspacePage,
+                        app,
+                        event.x,
+                        event.y,
+                        v
+                    )
                     true
                 }
-
-                DragEvent.ACTION_DRAG_ENDED -> true
+                DragEvent.ACTION_DRAG_ENDED -> {
+                    isDraggingInProgress = false
+                    true
+                }
                 else -> false
             }
         }
     }
+
+    override fun onStart() {
+        super.onStart()
+        mAppWidgetHost.startListening()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        mAppWidgetHost.stopListening()
+    }
+
     fun getInstalledAppList(context: Context): ArrayList<AppObject> {
         val resultList = ArrayList<AppObject>()
         val intent = Intent(Intent.ACTION_MAIN, null).apply {
@@ -90,40 +186,60 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                 resultList.add(app)
             }
         }
-
         return resultList
     }
+
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        swipeListener.onTouch(null, ev)
+        val appDrawerActive = supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
+
+        if (appDrawerActive) {
+            return super.dispatchTouchEvent(ev)
+        }
+        swipeListener.onTouch(findViewById(R.id.main), ev)
         return super.dispatchTouchEvent(ev)
     }
 
     private fun initializeHome() {
         val pagerAppList = ArrayList<PagerObject>()
-        val homeAppList = ArrayList<AppObject>()
-        pagerAppList.add(PagerObject(homeAppList))
+        val homeAppList = ArrayList<AppObject?>(Collections.nCopies(24, null))
+        pagerAppList.add(PagerObject(homeAppList as ArrayList<AppObject>))
         pagerAppList.add(PagerObject(homeAppList))
         viewPager = findViewById(R.id.ViewPager)
-        mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList)
+        mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList, mAppWidgetHost)
         viewPager.setAdapter(mViewPagerAdapter)
     }
 
-
     override fun onLongPress(e: MotionEvent) {
+        val appWidgetId = mAppWidgetHost.allocateAppWidgetId()
+        val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        }
+        pickWidgetLauncher.launch(pickIntent)
+    }
+    private fun createWidget(appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo?) {
+        val currentPosition = viewPager.currentItem
+        if (::mViewPagerAdapter.isInitialized && currentPosition < mViewPagerAdapter.count) {
+            val currentPage = mViewPagerAdapter.pagerAppList[currentPosition]
+            currentPage.addWidget(appWidgetId)
+            mViewPagerAdapter.addWidgetToPage(currentPosition, appWidgetId, appWidgetInfo)
+        }
     }
 
-    fun openHomeScreenSettings(){
+    fun openHomeScreenSettings() {
         if (supportFragmentManager.findFragmentByTag("home_screen") != null) return
         HomeScreenSettingsFragment().show(supportFragmentManager, "home_screen")
     }
+
     override fun onDoubleTap() {
-        if(validator.gestures["doubleTap"] == GestureAction.openHomeScreenSettings.ordinal) {
-           openHomeScreenSettings()
-        }else if (validator.gestures["doubleTap"] == GestureAction.openAppList.ordinal){
+        if (validator.gestures["doubleTap"] == GestureAction.openHomeScreenSettings.ordinal) {
+            openHomeScreenSettings()
+        } else if (validator.gestures["doubleTap"] == GestureAction.openAppList.ordinal) {
             openAppList()
         }
     }
-    fun openAppList(){
+
+    fun openAppList() {
+        isAppDrawerOpen = true
         if (supportFragmentManager.findFragmentByTag("app_drawer") != null) return
 
         val fragment = AppDrawerFragment(appList)
@@ -138,11 +254,13 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             .addToBackStack("app_drawer")
             .commit()
     }
+
     override fun onSwipeToTop() {
-        if(validator.gestures["swipeToTop"] == GestureAction.openAppList.ordinal) {
+        if (validator.gestures["swipeToTop"] == GestureAction.openAppList.ordinal) {
             openAppList()
-        }else if(validator.gestures["swipeToTop"] == GestureAction.openHomeScreenSettings.ordinal)
+        } else if (validator.gestures["swipeToTop"] == GestureAction.openHomeScreenSettings.ordinal) {
             openHomeScreenSettings()
+        }
     }
 
     fun itemPress(app: AppObject) {
@@ -154,6 +272,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     fun collapseFragment() {
+        isAppDrawerOpen = false
         if (supportFragmentManager.backStackEntryCount > 0) {
             supportFragmentManager.popBackStack()
         }

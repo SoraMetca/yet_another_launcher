@@ -7,7 +7,6 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.DragEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -26,12 +25,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.textfield.TextInputEditText
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.SettingsRepository
-import com.sorametca.yet_another_launcher.activity.DrawerSettings
 import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
-import com.sorametca.yet_another_launcher.dataStore
+import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
@@ -136,8 +133,16 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
                 adapter.notifyDataSetChanged()
             }
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.hiddenApps.collect { hidden ->
+                adapter.hiddenApps = hidden
+                adapter.notifyDataSetChanged()
+            }
+        }
+
     }
 
+    // back button when reorder mode is on acts as cancel button
     private fun enableReorderBackHandling() {
         if (backPressedCallback != null) return
 
@@ -156,14 +161,16 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
     private fun customOrder() {
 
         mDrawerGridView.setOnDragListener { _, event ->
-
-            if (!viewModel.getReorderMode()) return@setOnDragListener true
+            val mode = viewModel.getReorderMode()
+            if (event.action == DragEvent.ACTION_DRAG_STARTED || event.action == DragEvent.ACTION_DROP) {
+            }
+            if (!mode) return@setOnDragListener false
 
             when (event.action) {
 
                 DragEvent.ACTION_DROP -> {
-
-                    val fromPosition = event.localState as? Int
+                    val dragData = event.localState as? DragAppData ?: return@setOnDragListener true
+                    val fromPosition = dragData.originPosition
                         ?: return@setOnDragListener true
 
                     val targetPosition = mDrawerGridView.pointToPosition(
@@ -195,30 +202,54 @@ class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipe
     }
 
     private fun popupDrawerSetup() {
+
         popupMenuDrawerButton.setOnClickListener {
-            val popupMenu = PopupMenu(activity?.applicationContext, popupMenuDrawerButton)
-            popupMenu.menuInflater.inflate(R.menu.app_drawer_menu, popupMenu.menu)
 
-            popupMenu.setOnMenuItemClickListener { menuItem ->
-                if (menuItem.title == "Sort apps") {
+            val popupMenu = PopupMenu(requireContext(), popupMenuDrawerButton)
 
-                    val fragment = SortAppsFragment()
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.add(R.id.main, fragment)
-                        ?.addToBackStack(null)
-                        ?.commit()
-                }
+            popupMenu.menuInflater.inflate(
+                R.menu.app_drawer_menu,
+                popupMenu.menu
+            )
 
-                if (menuItem.title == "App Drawer Settings") {
-                    val intent = Intent(activity, DrawerSettings::class.java)
-                    startActivity(intent)
-                }
-                if (menuItem.title == "Launcher Settings") {
-                    val intent = Intent(activity, SettingsActivity::class.java)
-                    startActivity(intent)
-                }
-                true
+            try {
+                val field = PopupMenu::class.java.getDeclaredField("mPopup")
+                field.isAccessible = true
+
+                val helper = field.get(popupMenu)
+
+                helper.javaClass
+                    .getDeclaredMethod(
+                        "setForceShowIcon",
+                        Boolean::class.javaPrimitiveType
+                    )
+                    .invoke(helper, true)
+
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
+
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.sort_apps -> {
+                        parentFragmentManager.beginTransaction()
+                            .add(R.id.main, SortAppsFragment())
+                            .addToBackStack(null)
+                            .commit()
+                        true
+                    }
+
+                    R.id.main_settings -> {
+                        startActivity(
+                            Intent(requireContext(), SettingsActivity::class.java)
+                        )
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+
             popupMenu.show()
         }
     }
