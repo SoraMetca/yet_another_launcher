@@ -11,14 +11,21 @@ import android.widget.Spinner
 import android.widget.Switch
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.activity.MainActivity
+import com.sorametca.yet_another_launcher.settings.AppLaunchAnim
+import kotlinx.coroutines.launch
+
 class AppearanceFragment : Fragment() {
 
-    private var appLaunchAnim = listOf("None", "Fade in", "Zoom in","Slide in from bottom", "Slide in from top", "Enter")
-    private var temporary: Int? = null
+    val options = AppLaunchAnim.entries.map { it.displayName }
+
+    private val repository = MainActivity.RepositoryProvider.settingsRepository
 
     private lateinit var appAnimSpinner : Spinner
     private lateinit var statusBarSwitch : Switch
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -33,8 +40,23 @@ class AppearanceFragment : Fragment() {
         appAnimSpinner = view.findViewById(R.id.drawer_style_spinner)
         statusBarSwitch = view.findViewById(R.id.status_bar_switch)
 
+        // set position of spinner on launch
+        viewLifecycleOwner.lifecycleScope.launch {
+            repository.getLaunchAnim(requireContext()).collect { anim ->
+                val position = AppLaunchAnim.entries.indexOf(anim)
+                appAnimSpinner.setSelection(position)
+            }
+        }
+
+        // set position of status bar toggle
+        viewLifecycleOwner.lifecycleScope.launch {
+            repository.getStatusBarToggle(requireContext()).collect { state ->
+                statusBarSwitch.isChecked = state
+            }
+        }
+
         val adapter = ArrayAdapter(
-            requireContext(), android.R.layout.simple_spinner_item, appLaunchAnim
+            requireContext(), android.R.layout.simple_spinner_item, options
         ).apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
         val controller = WindowInsetsControllerCompat(
@@ -52,15 +74,10 @@ class AppearanceFragment : Fragment() {
                 position: Int,
                 id: Long
             ) {
-                val selectedItem = parent.getItemAtPosition(position).toString()
+                val anim = AppLaunchAnim.entries[position]
 
-                when(selectedItem){
-                    "Fade in" -> temporary = R.anim.fade_in
-                    "Zoom in" -> temporary = R.anim.fade_in
-                    "Slide in from bottom" -> R.anim.slide_in_up
-                    "Slide in from top" ->  R.anim.slide_in_top
-                    "Enter" -> R.anim.enter_in
-                    else -> temporary = null
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repository.saveLaunchAnim(requireContext(), anim)
                 }
             }
 
@@ -73,6 +90,10 @@ class AppearanceFragment : Fragment() {
                 controller.hide(WindowInsetsCompat.Type.statusBars())
             } else {
                 controller.show(WindowInsetsCompat.Type.statusBars())
+            }
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                repository.saveStatusBarToggle(requireContext(), isChecked)
             }
         }
     }

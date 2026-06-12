@@ -9,14 +9,18 @@ import android.widget.CompoundButton
 import android.widget.Switch
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.activity.MainActivity
+import kotlinx.coroutines.launch
 
-// mostly placeholders so far
 class ProfilesFragment : Fragment() {
+
+    private val repository = MainActivity.RepositoryProvider.settingsRepository
 
     private lateinit var manualExport: TextView
     private lateinit var importProfiles: TextView
-    private lateinit var automaticExportSwitch: Switch
+    private lateinit var autoExportSwitch: Switch
 
 
     override fun onCreateView(
@@ -32,7 +36,14 @@ class ProfilesFragment : Fragment() {
 
         manualExport = view.findViewById(R.id.manual_export)
         importProfiles = view.findViewById(R.id.import_profiles)
-        automaticExportSwitch = view.findViewById(R.id.automatic_export_switch)
+        autoExportSwitch = view.findViewById(R.id.automatic_export_switch)
+
+        // set position of status bar toggle
+        viewLifecycleOwner.lifecycleScope.launch {
+            repository.getAutoExportToggle(requireContext()).collect { state ->
+                autoExportSwitch.isChecked = state
+            }
+        }
 
         manualExport.setOnClickListener { _: View? ->
             // TODO
@@ -44,10 +55,14 @@ class ProfilesFragment : Fragment() {
             Log.d("option clicked", "import profiles")
         }
 
-        automaticExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+        autoExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
 
             // TODO
-            Log.d("option clicked", (if (isChecked) "enabled" else "disabled"))
+
+            // saving state of toggle
+            viewLifecycleOwner.lifecycleScope.launch {
+                repository.saveAutoExportToggle(requireContext(), isChecked)
+            }
         }
     }
 }

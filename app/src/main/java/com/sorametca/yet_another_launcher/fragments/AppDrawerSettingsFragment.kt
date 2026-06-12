@@ -21,6 +21,7 @@ class AppDrawerSettingsFragment : Fragment() {
 
     private lateinit var drawerStyleSpinner: Spinner
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -33,12 +34,12 @@ class AppDrawerSettingsFragment : Fragment() {
 
         drawerStyleSpinner = view.findViewById(R.id.drawer_style_spinner)
 
+        // set position of spinner on launch
         viewLifecycleOwner.lifecycleScope.launch {
             repository.getDrawerStyle(requireContext()).collect { style ->
                 val position = AppDrawerStyle.entries.indexOf(style)
                 drawerStyleSpinner.setSelection(position)
             }
-        
         }
 
         val adapter = ArrayAdapter(
