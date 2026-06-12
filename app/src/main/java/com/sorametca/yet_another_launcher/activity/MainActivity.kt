@@ -1,6 +1,7 @@
 package com.sorametca.yet_another_launcher.activity
 
 import android.app.ActivityOptions
+import android.app.Dialog
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
@@ -8,10 +9,22 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
+import android.graphics.Color
+import android.graphics.ImageDecoder
+import android.graphics.drawable.AnimatedImageDrawable
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.widget.GridView
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.VideoView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -25,10 +38,12 @@ import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
 import com.sorametca.yet_another_launcher.adapter.DragAppData
+import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
+import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
@@ -38,6 +53,12 @@ import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.view.LauncherWidgetView
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
+import com.sorametca.yet_another_launcher.model.FolderObject
+import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
+import com.sorametca.yet_another_launcher.views.LauncherWidgetView
+import com.sorametca.yet_another_launcher.views.AutoFitImageView
+import com.sorametca.yet_another_launcher.views.AutoFitVideoView
 import java.util.Collections
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
@@ -48,6 +69,8 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     private var appLaunchAnim = AppLaunchAnim.FADE_IN
 
     lateinit var appList: ArrayList<AppObject>
+
+    lateinit var appList: ArrayList<LauncherItem?>
     private lateinit var validator: SettingsRepository
     private var hideStatusBar = false
 
@@ -57,6 +80,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // Helpers
     private lateinit var swipeListener: OnSwipeListener
+    private var currentFolderDialog: Dialog? = null
 
     // Widget Management Components
     private val APPWIDGET_HOST_ID = 1024
@@ -174,14 +198,13 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                 DragEvent.ACTION_DRAG_EXITED -> true
                 DragEvent.ACTION_DROP -> {
                     isDraggingInProgress = false
-                    val dragData = event.localState as? DragAppData ?: return@setOnDragListener true
-                    val app = dragData.appObject
+                    val dragLocalState = event.localState ?: return@setOnDragListener true
 
                     val currentWorkspacePage = viewPager.currentItem
 
                     mViewPagerAdapter.addAppToPage(
                         currentWorkspacePage,
-                        app,
+                        dragLocalState,
                         event.x,
                         event.y,
                         v
@@ -198,6 +221,105 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             }
         }
     }
+    override fun onPause() {
+        super.onPause()
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+
+        if (videoWallpaper.isPlaying) {
+            videoWallpaper.pause()
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+        videoWallpaper.start()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+        videoWallpaper.stopPlayback()
+    }
+    fun setGifWallpaper(gifUri: Uri) {
+        findViewById<VideoView>(R.id.videoWallpaper).visibility = View.INVISIBLE
+
+        val gifWallpaper = findViewById<AutoFitImageView>(R.id.gifWallpaper)
+        gifWallpaper.visibility = View.VISIBLE
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(contentResolver, gifUri)
+            val drawable = ImageDecoder.decodeDrawable(source)
+
+            gifWallpaper.setImageDrawable(drawable)
+
+            gifWallpaper.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+
+            if (drawable is AnimatedImageDrawable) {
+                drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
+                drawable.start()
+            }
+        }
+    }
+    fun setVideoWallpaper(videoUri: Uri) {
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+
+        videoWallpaper.visibility = View.VISIBLE
+        videoWallpaper.setVideoURI(videoUri)
+
+        videoWallpaper.setOnPreparedListener { mediaPlayer ->
+            mediaPlayer.isLooping = true
+            mediaPlayer.start()
+        }
+    }
+    fun openFolder(folder: FolderObject) {
+        currentFolderDialog = Dialog(this).apply {
+            requestWindowFeature(Window.FEATURE_NO_TITLE)
+            window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+            val bgDrawable = GradientDrawable().apply {
+                setColor(Color.parseColor("#DD111111"))
+                cornerRadius = 48f
+            }
+
+            val layout = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                background = bgDrawable
+                setPadding(48, 48, 48, 48)
+                layoutParams = ViewGroup.LayoutParams(
+                    (resources.displayMetrics.widthPixels * 0.85).toInt(),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            val titleView = TextView(this@MainActivity).apply {
+                text = folder.folderLabel
+                textSize = 20f
+                setTextColor(Color.WHITE)
+                setPadding(0, 0, 0, 32)
+                textAlignment = android.view.View.TEXT_ALIGNMENT_CENTER
+            }
+
+            val gridView = GridView(this@MainActivity).apply {
+                numColumns = 4
+                verticalSpacing = 32
+            }
+
+            val folderAppsList = ArrayList<LauncherItem?>(folder.apps)
+            val adapter = AppAdapter(this@MainActivity, folderAppsList)
+            gridView.adapter = adapter
+
+            layout.addView(titleView)
+            layout.addView(gridView)
+            setContentView(layout)
+        }
+
+        currentFolderDialog?.show()
+    }
+
+    fun closeFolder() {
+        currentFolderDialog?.dismiss()
+        currentFolderDialog = null
+    }
 
     override fun onStart() {
         super.onStart()
@@ -209,8 +331,8 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         mAppWidgetHost.stopListening()
     }
 
-    fun getInstalledAppList(context: Context): ArrayList<AppObject> {
-        val resultList = ArrayList<AppObject>()
+    fun getInstalledAppList(context: Context): ArrayList<LauncherItem?> {
+        val resultList = ArrayList<LauncherItem?>()
         val intent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
@@ -227,7 +349,21 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
         return resultList
     }
-
+    private fun createFolderAtTarget(
+        targetPosition: Int,
+        targetApp: AppObject,
+        draggedApp: AppObject,
+        appList: ArrayList<LauncherItem?>
+    ) {
+        if (targetApp.packageName == draggedApp.packageName) return
+        val newFolder = FolderObject(
+            id = "folder_${System.currentTimeMillis()}",
+            folderLabel = "Folder"
+        )
+        newFolder.apps.add(targetApp)
+        newFolder.apps.add(draggedApp)
+        appList[targetPosition] = newFolder
+    }
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val appDrawerActive =
             supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
@@ -241,9 +377,10 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     private fun initializeHome() {
         val pagerAppList = ArrayList<PagerObject>()
-        val homeAppList = ArrayList<AppObject?>(Collections.nCopies(24, null))
-        pagerAppList.add(PagerObject(homeAppList as ArrayList<AppObject>))
+        val homeAppList = ArrayList<LauncherItem?>(Collections.nCopies(24, null))
+        val homeAppList2 = ArrayList<LauncherItem?>(Collections.nCopies(24, null))
         pagerAppList.add(PagerObject(homeAppList))
+        pagerAppList.add(PagerObject(homeAppList2))
         viewPager = findViewById(R.id.ViewPager)
         mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList, mAppWidgetHost)
         viewPager.setAdapter(mViewPagerAdapter)

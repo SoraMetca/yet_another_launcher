@@ -21,11 +21,12 @@ import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.dataStore
+import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
 import kotlinx.coroutines.launch
 
-class AppDrawerContextMenu(private val appList: ArrayList<AppObject>) : Fragment() {
+class AppDrawerContextMenu(private val appList: ArrayList<LauncherItem?>) : Fragment() {
 
     private var packageName: String? = null
 

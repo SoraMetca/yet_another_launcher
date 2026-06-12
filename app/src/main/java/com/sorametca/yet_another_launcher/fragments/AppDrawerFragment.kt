@@ -29,14 +29,17 @@ import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.DragAppData
+import com.sorametca.yet_another_launcher.dataStore
+import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
+import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import kotlinx.coroutines.launch
 
 
-class AppDrawerFragment(var appList: ArrayList<AppObject>) : Fragment(), OnSwipeInterface {
+class AppDrawerFragment(var appList: ArrayList<LauncherItem?>) : Fragment(), OnSwipeInterface {
 
     private var backPressedCallback: OnBackPressedCallback? = null
 
