@@ -13,7 +13,10 @@ import android.widget.GridView
 import androidx.viewpager.widget.PagerAdapter
 import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.model.FolderObject
+
 
 class ViewPagerAdapter(
     val context: Context,
@@ -26,7 +29,8 @@ class ViewPagerAdapter(
 
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
         val inflater: LayoutInflater = LayoutInflater.from(context)
-        val layout: ViewGroup = inflater.inflate(R.layout.pager_layout, container, false) as ViewGroup
+        val layout: ViewGroup =
+            inflater.inflate(R.layout.pager_layout, container, false) as ViewGroup
 
         val mGridView: GridView = layout.findViewById(R.id.grid)
         val mGridAdapter = AppAdapter(context, pagerAppList[position].getAppList())
@@ -55,7 +59,6 @@ class ViewPagerAdapter(
     }
 
 
-
     fun addWidgetToPage(position: Int, widgetId: Int, appWidgetInfo: AppWidgetProviderInfo?) {
         val layout = activePageViews[position]
         if (layout != null && appWidgetInfo != null) {
@@ -69,9 +72,11 @@ class ViewPagerAdapter(
         appWidgetInfo: AppWidgetProviderInfo,
         position: Int
     ) {
-        val widgetContainer = layout.findViewById<android.widget.LinearLayout>(R.id.widget_container)
+        val widgetContainer =
+            layout.findViewById<android.widget.LinearLayout>(R.id.widget_container)
 
-        val hostView: AppWidgetHostView = appWidgetHost.createView(context.applicationContext, widgetId, appWidgetInfo)
+        val hostView: AppWidgetHostView =
+            appWidgetHost.createView(context.applicationContext, widgetId, appWidgetInfo)
         hostView.setAppWidget(widgetId, appWidgetInfo)
 
         val lp = ViewGroup.LayoutParams(
@@ -112,9 +117,10 @@ class ViewPagerAdapter(
             appAdapter.notifyDataSetChanged()
         }
     }
+
     fun addAppToPage(
         pagePosition: Int,
-        app: AppObject,
+        draggedState: Any?,
         eventX: Float,
         eventY: Float,
         dragReceiverView: View
@@ -143,7 +149,83 @@ class ViewPagerAdapter(
 
         if (targetPosition < 0 || targetPosition >= appList.size) return
 
-        appList[targetPosition] = app
+        val draggedItem: LauncherItem
+        var sourcePosition: Int? = null
+        var isFromAppDrawer = false
+
+        // Smart-deduce the source environment without touching MainActivity
+        when (draggedState) {
+            is Int -> {
+                // Workspace reordering via grid position index
+                sourcePosition = draggedState
+                draggedItem = appList.getOrNull(sourcePosition) ?: return
+                isFromAppDrawer = false
+            }
+            is DragAppData -> {
+                draggedItem = draggedState.item
+                sourcePosition = null
+                isFromAppDrawer = true
+            }
+            is AppObject -> {
+                draggedItem = draggedState
+                val index = appList.indexOfFirst { it is AppObject && it.packageName == draggedItem.packageName }
+                if (index != -1) {
+                    sourcePosition = index
+                    isFromAppDrawer = false
+                } else {
+                    sourcePosition = null
+                    isFromAppDrawer = true
+                }
+            }
+            is FolderObject -> {
+                draggedItem = draggedState
+                val index = appList.indexOfFirst { it is FolderObject && it.id == draggedItem.id }
+                if (index != -1) {
+                    sourcePosition = index
+                    isFromAppDrawer = false
+                }
+            }
+            else -> return
+        }
+
+        if (sourcePosition == targetPosition && !isFromAppDrawer) return
+
+        val currentItemAtTarget = appList[targetPosition]
+
+        when (currentItemAtTarget) {
+            null -> {
+                appList[targetPosition] = draggedItem
+                if (sourcePosition != null && !isFromAppDrawer) {
+                    appList[sourcePosition] = null
+                }
+            }
+            is AppObject -> {
+                if (draggedItem is AppObject && currentItemAtTarget.packageName != draggedItem.packageName) {
+                    val newFolder = FolderObject(
+                        id = "folder_${System.currentTimeMillis()}",
+                        folderLabel = "Folder"
+                    ).apply {
+                        apps.add(currentItemAtTarget)
+                        apps.add(draggedItem)
+                    }
+                    appList[targetPosition] = newFolder
+                    if (sourcePosition != null && !isFromAppDrawer) {
+                        appList[sourcePosition] = null
+                    }
+                }
+            }
+            is FolderObject -> {
+                if (draggedItem is AppObject) {
+                    val isAlreadyInFolder = currentItemAtTarget.apps.any { it.packageName == draggedItem.packageName }
+                    if (!isAlreadyInFolder) {
+                        currentItemAtTarget.apps.add(draggedItem)
+                        if (sourcePosition != null && !isFromAppDrawer) {
+                            appList[sourcePosition] = null
+                        }
+                    }
+                }
+            }
+        }
 
         val adapter = mGridView.adapter as? AppAdapter
         adapter?.updateList(appList)
