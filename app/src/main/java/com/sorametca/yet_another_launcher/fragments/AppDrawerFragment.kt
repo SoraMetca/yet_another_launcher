@@ -35,7 +35,7 @@ import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
-import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
+import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import kotlinx.coroutines.launch
 
 

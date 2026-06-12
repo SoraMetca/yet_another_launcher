@@ -6,6 +6,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.activity.ComponentActivity
+import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import kotlin.math.abs
 
 abstract class OnSwipeListener(context: Context,

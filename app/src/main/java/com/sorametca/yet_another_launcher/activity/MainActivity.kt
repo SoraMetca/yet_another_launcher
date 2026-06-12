@@ -26,7 +26,7 @@ import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
-import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
+import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.view.LauncherWidgetView
 import java.util.Collections
