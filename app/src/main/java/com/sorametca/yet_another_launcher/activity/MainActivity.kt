@@ -221,6 +221,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             }
         }
     }
+
     override fun onPause() {
         super.onPause()
         val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
@@ -246,18 +247,16 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         val gifWallpaper = findViewById<AutoFitImageView>(R.id.gifWallpaper)
         gifWallpaper.visibility = View.VISIBLE
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(contentResolver, gifUri)
-            val drawable = ImageDecoder.decodeDrawable(source)
+        val source = ImageDecoder.createSource(contentResolver, gifUri)
+        val drawable = ImageDecoder.decodeDrawable(source)
 
-            gifWallpaper.setImageDrawable(drawable)
+        gifWallpaper.setImageDrawable(drawable)
 
-            gifWallpaper.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+        gifWallpaper.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
 
-            if (drawable is AnimatedImageDrawable) {
-                drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
-                drawable.start()
-            }
+        if (drawable is AnimatedImageDrawable) {
+            drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
+            drawable.start()
         }
     }
     fun setVideoWallpaper(videoUri: Uri) {
