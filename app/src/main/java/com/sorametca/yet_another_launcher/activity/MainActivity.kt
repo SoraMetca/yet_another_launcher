@@ -1,5 +1,6 @@
 package com.sorametca.yet_another_launcher.activity
 
+import android.app.ActivityOptions
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
@@ -30,9 +31,12 @@ import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
 import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
+import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
+import com.sorametca.yet_another_launcher.settings.AppLaunchAnim
 import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.view.LauncherWidgetView
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Collections
 
@@ -40,6 +44,9 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // Class variables
     private val homeAppList = ArrayList<AppObject>()
+
+    private var appLaunchAnim = AppLaunchAnim.FADE_IN
+
     lateinit var appList: ArrayList<AppObject>
     private lateinit var validator: SettingsRepository
     private var hideStatusBar = false
@@ -298,11 +305,34 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     fun itemPress(app: AppObject) {
-        val launchAppIntent =
-            applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
-        if (launchAppIntent != null) {
-            applicationContext.startActivity(launchAppIntent)
-        }
+
+         lifecycleScope.launch {
+
+             val anim = settingsRepository
+                 .getLaunchAnim(this@MainActivity)
+                 .first()
+
+             val selectedAnim = when (anim) {
+                 AppLaunchAnim.NONE -> R.anim.static_background
+                 AppLaunchAnim.FADE_IN -> R.anim.fade_in
+                 AppLaunchAnim.ZOOM_IN -> R.anim.zoom_in
+                 AppLaunchAnim.SLIDE_BOTTOM -> R.anim.slide_in_bottom
+                 AppLaunchAnim.SLIDE_TOP -> R.anim.slide_in_top
+                 AppLaunchAnim.ENTER -> R.anim.enter_in
+             }
+
+             val options = ActivityOptions.makeCustomAnimation(
+                 this@MainActivity,
+                 selectedAnim,
+                 R.anim.static_background
+             )
+
+             val launchAppIntent =
+                 applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
+             if (launchAppIntent != null) {
+                 applicationContext.startActivity(launchAppIntent, options.toBundle())
+             }
+         }
     }
 
     fun collapseFragment() {
