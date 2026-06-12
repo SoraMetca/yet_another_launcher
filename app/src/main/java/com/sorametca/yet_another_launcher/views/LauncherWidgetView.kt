@@ -1,4 +1,4 @@
-package com.sorametca.yet_another_launcher.view
+package com.sorametca.yet_another_launcher.views
 
 import android.appwidget.AppWidgetHostView
 import android.content.Context

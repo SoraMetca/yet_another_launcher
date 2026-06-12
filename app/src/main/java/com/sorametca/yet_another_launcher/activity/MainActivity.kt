@@ -9,10 +9,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.graphics.Color
+import android.graphics.ImageDecoder
+import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.DragEvent
 import android.view.MotionEvent
 import android.view.View
@@ -21,6 +23,7 @@ import android.view.Window
 import android.widget.GridView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.VideoView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -29,7 +32,6 @@ import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
-import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
 import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
@@ -40,7 +42,9 @@ import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
 import com.sorametca.yet_another_launcher.model.FolderObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
-import com.sorametca.yet_another_launcher.view.LauncherWidgetView
+import com.sorametca.yet_another_launcher.views.LauncherWidgetView
+import com.sorametca.yet_another_launcher.views.AutoFitImageView
+import com.sorametca.yet_another_launcher.views.AutoFitVideoView
 import java.util.Collections
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
@@ -169,6 +173,56 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                 }
                 else -> false
             }
+        }
+    }
+    override fun onPause() {
+        super.onPause()
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+
+        if (videoWallpaper.isPlaying) {
+            videoWallpaper.pause()
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+        videoWallpaper.start()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+        videoWallpaper.stopPlayback()
+    }
+    fun setGifWallpaper(gifUri: Uri) {
+        findViewById<VideoView>(R.id.videoWallpaper).visibility = View.INVISIBLE
+
+        val gifWallpaper = findViewById<AutoFitImageView>(R.id.gifWallpaper)
+        gifWallpaper.visibility = View.VISIBLE
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(contentResolver, gifUri)
+            val drawable = ImageDecoder.decodeDrawable(source)
+
+            gifWallpaper.setImageDrawable(drawable)
+
+            gifWallpaper.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+
+            if (drawable is AnimatedImageDrawable) {
+                drawable.repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
+                drawable.start()
+            }
+        }
+    }
+    fun setVideoWallpaper(videoUri: Uri) {
+        val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
+
+        videoWallpaper.visibility = View.VISIBLE
+        videoWallpaper.setVideoURI(videoUri)
+
+        videoWallpaper.setOnPreparedListener { mediaPlayer ->
+            mediaPlayer.isLooping = true
+            mediaPlayer.start()
         }
     }
     fun openFolder(folder: FolderObject) {

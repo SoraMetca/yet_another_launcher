@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import com.sorametca.yet_another_launcher.R
@@ -31,11 +32,15 @@ class HomeScreenSettingsFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         wallpaperOption = view.findViewById(R.id.wallpaper_option)
+        wallpaperOption.setOnClickListener {
+            childFragmentManager.beginTransaction()
+                .replace(R.id.settings_container, WallpaperSettingsFragment())
+                .addToBackStack("wallpaper_settings")
+                .commit()
+        }
         widgetsOption = view.findViewById(R.id.widgets_option)
         addFolder = view.findViewById(R.id.add_folder_option)
         settingsButton = view.findViewById(R.id.settings_button)
-
-        wallpaperOption.setOnClickListener { /* TODO */ }
         widgetsOption.setOnClickListener { /* TODO */ }
         addFolder.setOnClickListener { /* TODO */ }
         settingsButton.setOnClickListener {
