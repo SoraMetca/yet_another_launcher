@@ -19,6 +19,7 @@ import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.fragments.AppDrawerContextMenu
 import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
 import java.util.ArrayList
 import kotlin.math.abs
 
@@ -35,14 +36,28 @@ class AppAdapter(
 
     override fun getCount(): Int = filteredList.size
 
+    private var drawerStyle = AppDrawerStyle.GRID
+
+    fun setDrawerStyle(style: AppDrawerStyle) {
+        if (drawerStyle != style) {
+            drawerStyle = style
+            notifyDataSetChanged()
+        }
+    }
+
     override fun getItem(position: Int): Any? = filteredList.getOrNull(position)
     override fun getItemId(position: Int): Long = position.toLong()
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 
+        val layoutId = when (drawerStyle) {
+            AppDrawerStyle.GRID -> R.layout.app_grid_item
+            AppDrawerStyle.LIST -> R.layout.app_list_item
+        }
+
         val v: View = if (convertView == null) {
             val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            inflater.inflate(R.layout.item_app, parent, false)
+            inflater.inflate(layoutId, parent, false)
         } else {
             convertView
         }

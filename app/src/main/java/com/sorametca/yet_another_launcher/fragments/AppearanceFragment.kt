@@ -30,7 +30,7 @@ class AppearanceFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        appAnimSpinner = view.findViewById(R.id.app_anim_spinner)
+        appAnimSpinner = view.findViewById(R.id.drawer_style_spinner)
         statusBarSwitch = view.findViewById(R.id.status_bar_switch)
 
         val adapter = ArrayAdapter(

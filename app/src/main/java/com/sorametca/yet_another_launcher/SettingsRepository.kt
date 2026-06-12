@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -32,6 +33,7 @@ class SettingsRepository(
     val HIDDEN_APPS = stringSetPreferencesKey("hidden_apps")
     val SORT_TYPE_ID = intPreferencesKey("sort_type_id")
     val APP_ANIM = stringPreferencesKey("app_anim")
+    val APP_DRAWER_STYLE = stringPreferencesKey("app_drawer_style")
 
     suspend fun saveGestureMap(map: Map<String, Int>) {
         dataStore.edit { prefs ->
@@ -179,16 +181,19 @@ class SettingsRepository(
             prefs[APP_ANIM] ?: R.anim.fade_in
         }
 
-//    suspend fun getAnimType(): Flow<Any> {
-//        return context.dataStore.data
-//            .map { prefs ->
-//                prefs[APP_ANIM] ?: R.anim.fade_in
-//            }
-//    }
+    // app drawer styles
 
-//    suspend fun setLabel(anim : Any) {
-//        dataStore.edit { prefs ->
-//            prefs[APP_ANIM] = anim
-//        }
-//    }
+    fun getDrawerStyle(context: Context): Flow<AppDrawerStyle> {
+        return context.dataStore.data.map { prefs ->
+            val savedValue = prefs[APP_DRAWER_STYLE]
+
+            AppDrawerStyle.valueOf(savedValue ?: AppDrawerStyle.GRID.name)
+        }
+    }
+
+    suspend fun saveDrawerStyle(context: Context, style: AppDrawerStyle) {
+        context.dataStore.edit { prefs ->
+            prefs[APP_DRAWER_STYLE] = style.name
+        }
+    }
 }
