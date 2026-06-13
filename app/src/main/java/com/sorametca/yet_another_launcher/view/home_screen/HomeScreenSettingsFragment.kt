@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.view.settings.WallpaperSettingsFragment
 
@@ -42,7 +43,7 @@ class HomeScreenSettingsFragment : BottomSheetDialogFragment() {
         }
         widgetsOption = view.findViewById(R.id.widgets_option)
         settingsButton = view.findViewById(R.id.settings_button)
-        widgetsOption.setOnClickListener { /* TODO */ }
+        widgetsOption.setOnClickListener { (requireActivity() as MainActivity).openWidgetPicker() }
         settingsButton.setOnClickListener {
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }

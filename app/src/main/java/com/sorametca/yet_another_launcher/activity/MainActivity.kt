@@ -373,8 +373,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         mViewPagerAdapter = ViewPagerAdapter(this, pagerAppList, mAppWidgetHost)
         viewPager.setAdapter(mViewPagerAdapter)
     }
-
-    override fun onLongPress(e: MotionEvent) {
+    fun openWidgetPicker() {
         val appWidgetId = mAppWidgetHost.allocateAppWidgetId()
         val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK).apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -382,7 +381,21 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         pickWidgetLauncher.launch(pickIntent)
     }
 
-    private fun createWidget(appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo?) {
+    override fun onLongPress(e: MotionEvent) {
+        val action = RepositoryProvider.settingsRepository.gestures["longPress"]
+
+        when (action) {
+            GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal -> {
+                openHomeScreenSettings()
+            }
+            GestureAction.OPEN_APP_DRAWER.ordinal -> {
+                openAppList()
+            }
+            GestureAction.OPEN_WIDGET_PICKER.ordinal -> openWidgetPicker()
+        }
+    }
+
+    fun createWidget(appWidgetId: Int, appWidgetInfo: AppWidgetProviderInfo?) {
         val currentPosition = viewPager.currentItem
         if (::mViewPagerAdapter.isInitialized && currentPosition < mViewPagerAdapter.count) {
             val currentPage = mViewPagerAdapter.pagerAppList[currentPosition]
@@ -399,10 +412,14 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     override fun onDoubleTap() {
         val action = RepositoryProvider.settingsRepository.gestures["doubleTap"]
 
-        if (action == GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal) {
-            openHomeScreenSettings()
-        } else if (action == GestureAction.OPEN_APP_DRAWER.ordinal) {
-            openAppList()
+        when (action) {
+            GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal -> {
+                openHomeScreenSettings()
+            }
+            GestureAction.OPEN_APP_DRAWER.ordinal -> {
+                openAppList()
+            }
+            GestureAction.OPEN_WIDGET_PICKER.ordinal -> openWidgetPicker()
         }
     }
 
@@ -426,10 +443,14 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     override fun onSwipeToTop() {
         val action = RepositoryProvider.settingsRepository.gestures["swipeToTop"]
 
-        if (action == GestureAction.OPEN_APP_DRAWER.ordinal) {
-            openAppList()
-        } else if (action == GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal) {
-            openHomeScreenSettings()
+        when (action) {
+            GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal -> {
+                openHomeScreenSettings()
+            }
+            GestureAction.OPEN_APP_DRAWER.ordinal -> {
+                openAppList()
+            }
+            GestureAction.OPEN_WIDGET_PICKER.ordinal -> openWidgetPicker()
         }
     }
 
