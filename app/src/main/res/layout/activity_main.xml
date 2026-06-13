@@ -2,16 +2,18 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
+    android:clickable="true"
+    android:focusable="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.sorametca.yet_another_launcher.views.AutoFitVideoView
+    <com.sorametca.yet_another_launcher.core.wallpaper.AutoFitVideoView
         android:id="@+id/videoWallpaper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="invisible" />
 
-    <com.sorametca.yet_another_launcher.views.AutoFitImageView
+    <com.sorametca.yet_another_launcher.core.wallpaper.AutoFitImageView
         android:id="@+id/gifWallpaper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

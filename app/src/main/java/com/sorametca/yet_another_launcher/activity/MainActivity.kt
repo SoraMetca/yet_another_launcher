@@ -1,6 +1,5 @@
 package com.sorametca.yet_another_launcher.activity
 
-import android.app.ActivityOptions
 import android.app.Dialog
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
@@ -33,60 +32,50 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
-import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.SettingsRepository
-import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
-import com.sorametca.yet_another_launcher.adapter.DragAppData
-import com.sorametca.yet_another_launcher.adapter.AppAdapter
-import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
-import com.sorametca.yet_another_launcher.dataStore
-import com.sorametca.yet_another_launcher.fragments.AppDrawerFragment
-import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
-import com.sorametca.yet_another_launcher.interfaces.LauncherItem
+import com.sorametca.yet_another_launcher.core.AppLauncher
+import com.sorametca.yet_another_launcher.core.adapter.AppAdapter
+import com.sorametca.yet_another_launcher.core.adapter.ViewPagerAdapter
+import com.sorametca.yet_another_launcher.core.swipes.OnSwipeInterface
+import com.sorametca.yet_another_launcher.core.swipes.OnSwipeListener
+import com.sorametca.yet_another_launcher.core.wallpaper.AutoFitImageView
+import com.sorametca.yet_another_launcher.core.wallpaper.AutoFitVideoView
+import com.sorametca.yet_another_launcher.core.widget.LauncherWidgetView
 import com.sorametca.yet_another_launcher.model.AppObject
-import com.sorametca.yet_another_launcher.model.PagerObject
-import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
-import com.sorametca.yet_another_launcher.settings.AppLaunchAnim
-import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
-import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
-import com.sorametca.yet_another_launcher.views.LauncherWidgetView
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import com.sorametca.yet_another_launcher.model.FolderObject
-import com.sorametca.yet_another_launcher.views.AutoFitImageView
-import com.sorametca.yet_another_launcher.views.AutoFitVideoView
+import com.sorametca.yet_another_launcher.model.LauncherItem
+import com.sorametca.yet_another_launcher.model.PagerObject
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.statusBarRepository
+import com.sorametca.yet_another_launcher.settings.dataStore
+import com.sorametca.yet_another_launcher.settings.options.GestureAction
+import com.sorametca.yet_another_launcher.view.app_drawer.AppDrawerFragment
+import com.sorametca.yet_another_launcher.view.home_screen.HomeScreenSettingsFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.util.Collections
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
-    // Class variables
-    private val homeAppList = ArrayList<AppObject>()
-
-    private var appLaunchAnim = AppLaunchAnim.FADE_IN
-
-
-    lateinit var appList: ArrayList<LauncherItem?>
-
-    private lateinit var validator: SettingsRepository
+    private val appWidgetHostId = 1024
     private var hideStatusBar = false
-
-    // Layout variables
-    private lateinit var viewPager: ViewPager
-    private lateinit var mViewPagerAdapter: ViewPagerAdapter
-
-    // Helpers
-    private lateinit var swipeListener: OnSwipeListener
+    lateinit var appList: ArrayList<LauncherItem?>
+    private var appLauncher = AppLauncher(this)
     private var currentFolderDialog: Dialog? = null
 
-    // Widget Management Components
-    private val APPWIDGET_HOST_ID = 1024
+    private lateinit var swipeListener: OnSwipeListener
+
     private lateinit var mAppWidgetManager: AppWidgetManager
     private lateinit var mAppWidgetHost: AppWidgetHost
+    private lateinit var mViewPagerAdapter: ViewPagerAdapter
+    private lateinit var viewPager: ViewPager
 
     companion object {
         @Volatile
         var isAppDrawerOpen = false
+
         @Volatile
         var isDraggingInProgress = false
     }
@@ -136,16 +125,12 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
     }
 
-    object RepositoryProvider {
-        lateinit var settingsRepository: SettingsRepository
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         mAppWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        mAppWidgetHost = object : AppWidgetHost(applicationContext, APPWIDGET_HOST_ID) {
+        mAppWidgetHost = object : AppWidgetHost(applicationContext, appWidgetHostId) {
             override fun onCreateView(
                 context: Context,
                 appWidgetId: Int,
@@ -157,19 +142,21 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
         appList = getInstalledAppList(this)
         initializeHome()
-        validator = SettingsRepository(this.dataStore, lifecycleScope)
-
-        val main = findViewById<View>(R.id.main)
-        main.isClickable = true
-        main.isFocusable = true
 
         swipeListener = object : OnSwipeListener(this, this) {}
 
-        settingsRepository = SettingsRepository(dataStore, lifecycleScope)
+        val main = findViewById<View>(R.id.main)
+        setOnDragListener(main)
+
+        RepositoryProvider.initialize(
+            dataStore,
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        )
+
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.statusBarToggle.collect { shouldHide ->
+                statusBarRepository.statusBarToggle.collect { shouldHide ->
                     hideStatusBar = shouldHide
 
                     val controller =
@@ -227,6 +214,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             videoWallpaper.pause()
         }
     }
+
     override fun onResume() {
         super.onResume()
         val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
@@ -238,6 +226,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
         videoWallpaper.stopPlayback()
     }
+
     fun setGifWallpaper(gifUri: Uri) {
         findViewById<VideoView>(R.id.videoWallpaper).visibility = View.INVISIBLE
 
@@ -256,6 +245,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
             drawable.start()
         }
     }
+
     fun setVideoWallpaper(videoUri: Uri) {
         val videoWallpaper = findViewById<AutoFitVideoView>(R.id.videoWallpaper)
 
@@ -292,7 +282,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
                 textSize = 20f
                 setTextColor(Color.WHITE)
                 setPadding(0, 0, 0, 32)
-                textAlignment = android.view.View.TEXT_ALIGNMENT_CENTER
+                textAlignment = View.TEXT_ALIGNMENT_CENTER
             }
 
             val gridView = GridView(this@MainActivity).apply {
@@ -345,6 +335,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
         return resultList
     }
+
     private fun createFolderAtTarget(
         targetPosition: Int,
         targetApp: AppObject,
@@ -360,6 +351,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         newFolder.apps.add(draggedApp)
         appList[targetPosition] = newFolder
     }
+
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val appDrawerActive =
             supportFragmentManager.fragments.any { it is AppDrawerFragment && it.isVisible }
@@ -407,9 +399,9 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     override fun onDoubleTap() {
         val action = RepositoryProvider.settingsRepository.gestures["doubleTap"]
 
-        if (action == GestureAction.openHomeScreenSettings.ordinal) {
+        if (action == GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal) {
             openHomeScreenSettings()
-        } else if (action == GestureAction.openAppList.ordinal) {
+        } else if (action == GestureAction.OPEN_APP_DRAWER.ordinal) {
             openAppList()
         }
     }
@@ -434,42 +426,17 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     override fun onSwipeToTop() {
         val action = RepositoryProvider.settingsRepository.gestures["swipeToTop"]
 
-        if (action == GestureAction.openAppList.ordinal) {
+        if (action == GestureAction.OPEN_APP_DRAWER.ordinal) {
             openAppList()
-        } else if (action == GestureAction.openHomeScreenSettings.ordinal) {
+        } else if (action == GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal) {
             openHomeScreenSettings()
         }
     }
 
     fun itemPress(app: AppObject) {
-
-         lifecycleScope.launch {
-
-             val anim = settingsRepository
-                 .getLaunchAnim(this@MainActivity)
-                 .first()
-
-             val selectedAnim = when (anim) {
-                 AppLaunchAnim.NONE -> R.anim.static_background
-                 AppLaunchAnim.FADE_IN -> R.anim.fade_in
-                 AppLaunchAnim.ZOOM_IN -> R.anim.zoom_in
-                 AppLaunchAnim.SLIDE_BOTTOM -> R.anim.slide_in_bottom
-                 AppLaunchAnim.SLIDE_TOP -> R.anim.slide_in_top
-                 AppLaunchAnim.ENTER -> R.anim.enter_in
-             }
-
-             val options = ActivityOptions.makeCustomAnimation(
-                 this@MainActivity,
-                 selectedAnim,
-                 R.anim.static_background
-             )
-
-             val launchAppIntent =
-                 applicationContext.packageManager.getLaunchIntentForPackage(app.packageName)
-             if (launchAppIntent != null) {
-                 applicationContext.startActivity(launchAppIntent, options.toBundle())
-             }
-         }
+        lifecycleScope.launch {
+            appLauncher.launch(app)
+        }
     }
 
     fun collapseFragment() {
@@ -485,6 +452,42 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         if (hasFocus && hideStatusBar) {
             WindowCompat.getInsetsController(window, window.decorView)
                 .hide(WindowInsetsCompat.Type.statusBars())
+        }
+    }
+
+    private fun setOnDragListener(view: View) {
+        view.setOnDragListener { v, event ->
+            when (event.action) {
+                DragEvent.ACTION_DRAG_STARTED -> {
+                    isDraggingInProgress = true
+                    true
+                }
+
+                DragEvent.ACTION_DRAG_ENTERED -> true
+                DragEvent.ACTION_DRAG_EXITED -> true
+                DragEvent.ACTION_DROP -> {
+                    isDraggingInProgress = false
+                    val dragLocalState = event.localState ?: return@setOnDragListener true
+
+                    val currentWorkspacePage = viewPager.currentItem
+
+                    mViewPagerAdapter.addAppToPage(
+                        currentWorkspacePage,
+                        dragLocalState,
+                        event.x,
+                        event.y,
+                        v
+                    )
+                    true
+                }
+
+                DragEvent.ACTION_DRAG_ENDED -> {
+                    isDraggingInProgress = false
+                    true
+                }
+
+                else -> false
+            }
         }
     }
 }
