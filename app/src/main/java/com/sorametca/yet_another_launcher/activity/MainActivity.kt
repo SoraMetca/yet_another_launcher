@@ -405,9 +405,11 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     override fun onDoubleTap() {
-        if (validator.gestures["doubleTap"] == GestureAction.openHomeScreenSettings.ordinal) {
+        val action = RepositoryProvider.settingsRepository.gestures["doubleTap"]
+
+        if (action == GestureAction.openHomeScreenSettings.ordinal) {
             openHomeScreenSettings()
-        } else if (validator.gestures["doubleTap"] == GestureAction.openAppList.ordinal) {
+        } else if (action == GestureAction.openAppList.ordinal) {
             openAppList()
         }
     }
@@ -430,9 +432,11 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     override fun onSwipeToTop() {
-        if (validator.gestures["swipeToTop"] == GestureAction.openAppList.ordinal) {
+        val action = RepositoryProvider.settingsRepository.gestures["swipeToTop"]
+
+        if (action == GestureAction.openAppList.ordinal) {
             openAppList()
-        } else if (validator.gestures["swipeToTop"] == GestureAction.openHomeScreenSettings.ordinal) {
+        } else if (action == GestureAction.openHomeScreenSettings.ordinal) {
             openHomeScreenSettings()
         }
     }

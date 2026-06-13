@@ -45,6 +45,7 @@ class SettingsRepository(
     suspend fun saveGestureMap(map: Map<String, Int>) {
         dataStore.edit { prefs ->
             map["swipeToTop"]?.let { prefs[GestureKeys.SWIPE_TO_TOP] = it }
+            map["swipeToBottom"]?.let { prefs[GestureKeys.SWIPE_TO_BOTTOM] = it }
             map["doubleTap"]?.let { prefs[GestureKeys.DOUBLE_TAP] = it }
             map["longPress"]?.let { prefs[GestureKeys.LONG_PRESS] = it }
         }
@@ -54,14 +55,15 @@ class SettingsRepository(
         val prefs = dataStore.data.first()
         return mutableMapOf(
             "swipeToTop" to (prefs[GestureKeys.SWIPE_TO_TOP] ?: GestureAction.openAppList.ordinal),
-            "doubleTap" to (prefs[GestureKeys.DOUBLE_TAP]
-                ?: GestureAction.openHomeScreenSettings.ordinal),
+            "swipeToBottom" to (prefs[GestureKeys.SWIPE_TO_BOTTOM] ?: -1),
+            "doubleTap" to (prefs[GestureKeys.DOUBLE_TAP] ?: GestureAction.openHomeScreenSettings.ordinal),
             "longPress" to (prefs[GestureKeys.LONG_PRESS] ?: -1)
         )
     }
 
     var gestures = mutableMapOf(
         "swipeToTop" to GestureAction.openAppList.ordinal,
+        "swipeToBottom" to -1,
         "doubleTap" to GestureAction.openHomeScreenSettings.ordinal,
         "longPress" to -1
     )
