@@ -1,60 +1,137 @@
 package com.sorametca.yet_another_launcher.activity
 
 import android.os.Bundle
-import android.widget.ArrayAdapter
-import android.widget.ListView
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.statusBarRepository
+import com.sorametca.yet_another_launcher.view.settings.AboutFragment
+import com.sorametca.yet_another_launcher.view.settings.AppDrawerSettingsFragment
+import com.sorametca.yet_another_launcher.view.settings.AppearanceFragment
+import com.sorametca.yet_another_launcher.view.settings.GesturesFragment
+import com.sorametca.yet_another_launcher.view.settings.HiddenApplicationsFragment
+import com.sorametca.yet_another_launcher.view.settings.ProfilesFragment
+import kotlinx.coroutines.launch
 
+// TODO replace static options with recyclerview
 
 class SettingsActivity : AppCompatActivity() {
 
-    private val options = listOf("Home Screen", "Global Appearance", "Gestures", "Hidden Applications", "Import/Export Profiles", "About")
-    private lateinit var listView : ListView
+    private var hideStatusBar = false
 
+    private lateinit var appDrawerOption: LinearLayout
+    private lateinit var appearanceOption: LinearLayout
+    private lateinit var gesturesOption: LinearLayout
+    private lateinit var hiddenApplicationOption : LinearLayout
+    private lateinit var profilesOption: LinearLayout
+    private lateinit var aboutOption: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        listView = findViewById(R.id.hidden_apps_list_view)
+        appDrawerOption = findViewById(R.id.app_drawer_option)
+        appearanceOption = findViewById(R.id.appearance_option)
+        gesturesOption = findViewById(R.id.gestures_option)
+        hiddenApplicationOption = findViewById(R.id.hidden_application_option)
+        profilesOption = findViewById(R.id.profiles_option)
+        aboutOption = findViewById(R.id.about_option)
 
-        val arr: ArrayAdapter<String> = ArrayAdapter(this,R.layout.support_simple_spinner_dropdown_item,options)
+        val options =
+            listOf(appDrawerOption, appearanceOption, gesturesOption, hiddenApplicationOption, profilesOption, aboutOption)
 
-        listView.adapter = arr
+        listenersSetup(options)
 
-        handleItemClicks()
-    }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                statusBarRepository.statusBarToggle.collect { shouldHide ->
+                    hideStatusBar = shouldHide
 
-    private fun handleItemClicks(){
-        listView.setOnItemClickListener { parent, view, position, id ->
-            val selectedOption = options[position]
+                    val controller =
+                        WindowCompat.getInsetsController(window, window.decorView)
 
-            when (selectedOption) {
-                "Home Screen" -> {
-                    // TODO handle Home Screen click
-                }
-                "Global Appearance" -> {
-                    // TODO handle Global Appearance click
-                }
-                "Gestures" -> {
-                    // TODO handle Gestures click
-                }
-                "Hidden Applications" -> {
-                    val fragment = HiddenApplicationsFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main, fragment, "fragment_hidden_applications")
-                        .addToBackStack("fragment_hidden_applications")
-                        .commit()
-                }
-                "Import/Export Profiles" -> {
-                    // TODO handle Import/Export Profiles click
-                }
-                "About" -> {
-                    // TODO handle About click
+                    if (shouldHide) {
+                        controller.hide(WindowInsetsCompat.Type.statusBars())
+                    } else {
+                        controller.show(WindowInsetsCompat.Type.statusBars())
+                    }
                 }
             }
+        }
+    }
+
+    private fun listenersSetup(options: List<LinearLayout>) {
+        for (option in options) {
+            option.setOnClickListener {
+                handleItemClicks(option)
+            }
+        }
+    }
+
+    private fun handleItemClicks(option: LinearLayout) {
+
+        when (option) {
+            appDrawerOption -> {
+                val fragment = AppDrawerSettingsFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_app_drawer_settings")
+                    .addToBackStack("fragment_hidden_applications")
+                    .commit()
+            }
+
+            appearanceOption -> {
+                val fragment = AppearanceFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_appearance")
+                    .addToBackStack("fragment_hidden_applications")
+                    .commit()
+            }
+
+            gesturesOption -> {
+                val fragment = GesturesFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_gestures")
+                    .addToBackStack("fragment_gestures")
+                    .commit()
+            }
+
+            hiddenApplicationOption -> {
+                val fragment = HiddenApplicationsFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_hidden_applications")
+                    .addToBackStack("fragment_hidden_applications")
+                    .commit()
+            }
+
+            profilesOption -> {
+                val fragment = ProfilesFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_profiles")
+                    .addToBackStack("fragment_profiles")
+                    .commit()
+            }
+
+            aboutOption -> {
+                val fragment = AboutFragment()
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.main, fragment, "fragment_about")
+                    .addToBackStack("fragment_about")
+                    .commit()
+            }
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+
+        if (hasFocus && hideStatusBar) {
+            WindowCompat.getInsetsController(window, window.decorView)
+                .hide(WindowInsetsCompat.Type.statusBars())
         }
     }
 }

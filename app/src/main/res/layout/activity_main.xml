@@ -2,25 +2,34 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
+    android:clickable="true"
+    android:focusable="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <com.sorametca.yet_another_launcher.core.wallpaper.AutoFitVideoView
+        android:id="@+id/videoWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible" />
+
+    <com.sorametca.yet_another_launcher.core.wallpaper.AutoFitImageView
+        android:id="@+id/gifWallpaper"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible" />
 
     <LinearLayout
         android:id="@+id/homeScreen"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/ViewPager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" />
 
-        </androidx.viewpager.widget.ViewPager>
     </LinearLayout>
 
     <FrameLayout
@@ -36,10 +45,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:numColumns="4"
-            android:stretchMode="columnWidth">
+            android:stretchMode="columnWidth" />
 
-        </GridView>
     </FrameLayout>
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
