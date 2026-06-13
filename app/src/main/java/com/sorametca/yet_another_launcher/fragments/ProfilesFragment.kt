@@ -15,7 +15,7 @@ import androidx.datastore.preferences.core.*
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.dataStore // Your global DataStore
+import com.sorametca.yet_another_launcher.dataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -25,27 +25,18 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.sorametca.yet_another_launcher.activity.MainActivity
-import kotlinx.coroutines.launch
 
 class ProfilesFragment : Fragment() {
 
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
-
     private lateinit var manualExport: TextView
     private lateinit var importProfiles: TextView
-    private lateinit var autoExportSwitch: Switch
     private lateinit var automaticExportSwitch: Switch
     private lateinit var exportStatusText: TextView
-
-    // 1. SAF Launcher for Exporting (creates the "Save As..." system dialog)
     private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             exportProfileData(uri)
         }
     }
-
-    // 2. SAF Launcher for Importing (creates the "Open File..." system dialog)
     private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             importProfileData(uri)
@@ -56,7 +47,6 @@ class ProfilesFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         return inflater.inflate(R.layout.fragment_profiles, container, false)
     }
 
@@ -65,12 +55,6 @@ class ProfilesFragment : Fragment() {
 
         manualExport = view.findViewById(R.id.manual_export)
         importProfiles = view.findViewById(R.id.import_profiles)
-        autoExportSwitch = view.findViewById(R.id.automatic_export_switch)
-        viewLifecycleOwner.lifecycleScope.launch {
-            repository.getAutoExportToggle(requireContext()).collect { state ->
-                autoExportSwitch.isChecked = state
-            }
-        }
         automaticExportSwitch = view.findViewById(R.id.automatic_export_switch)
         exportStatusText = view.findViewById(R.id.export_status)
         manualExport.setOnClickListener { _: View? ->
@@ -81,13 +65,7 @@ class ProfilesFragment : Fragment() {
             importLauncher.launch(arrayOf("application/json"))
         }
 
-        autoExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                repository.saveAutoExportToggle(requireContext(), isChecked)
-            }
         automaticExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            // TODO: Save this preference to your DataStore so the app remembers it
             Log.d("option clicked", (if (isChecked) "enabled" else "disabled"))
         }
     }
@@ -148,7 +126,6 @@ class ProfilesFragment : Fragment() {
 
                 val preferencesJson = rootJson.getJSONObject("preferences")
                 val keys = preferencesJson.keys()
-
 
                 requireContext().dataStore.edit { mutablePreferences ->
                     while (keys.hasNext()) {

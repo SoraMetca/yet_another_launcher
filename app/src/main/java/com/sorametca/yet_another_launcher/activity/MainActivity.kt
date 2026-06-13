@@ -48,15 +48,12 @@ import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
 import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
 import com.sorametca.yet_another_launcher.settings.AppLaunchAnim
-import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
-import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
-import com.sorametca.yet_another_launcher.view.LauncherWidgetView
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
-import com.sorametca.yet_another_launcher.model.FolderObject
 import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.views.LauncherWidgetView
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import com.sorametca.yet_another_launcher.model.FolderObject
 import com.sorametca.yet_another_launcher.views.AutoFitImageView
 import com.sorametca.yet_another_launcher.views.AutoFitVideoView
 import java.util.Collections
@@ -68,7 +65,6 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     private var appLaunchAnim = AppLaunchAnim.FADE_IN
 
-    lateinit var appList: ArrayList<AppObject>
 
     lateinit var appList: ArrayList<LauncherItem?>
     private lateinit var validator: SettingsRepository
