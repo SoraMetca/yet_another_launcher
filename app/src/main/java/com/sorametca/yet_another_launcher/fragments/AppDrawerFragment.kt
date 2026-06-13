@@ -152,7 +152,6 @@ class AppDrawerFragment(var appList: ArrayList<LauncherItem?>) : Fragment(), OnS
 
     }
 
-    // back button when reorder mode is on acts as cancel button
     private fun enableReorderBackHandling() {
         if (backPressedCallback != null) return
 

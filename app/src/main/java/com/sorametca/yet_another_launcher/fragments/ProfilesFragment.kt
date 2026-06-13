@@ -193,7 +193,7 @@ class ProfilesFragment : Fragment() {
     }
 
 
-    // 1. SAF Launcher for Exporting (creates the "Save As..." system dialog)
+
     private val exportLauncher =
         registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
             if (uri != null) {
@@ -201,7 +201,7 @@ class ProfilesFragment : Fragment() {
             }
         }
 
-    // 2. SAF Launcher for Importing (creates the "Open File..." system dialog)
+
     private val importLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
