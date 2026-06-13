@@ -10,12 +10,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
-import com.sorametca.yet_another_launcher.fragments.AboutFragment
-import com.sorametca.yet_another_launcher.fragments.AppDrawerSettingsFragment
-import com.sorametca.yet_another_launcher.fragments.AppearanceFragment
-import com.sorametca.yet_another_launcher.fragments.GesturesFragment
-import com.sorametca.yet_another_launcher.fragments.HiddenApplicationsFragment
-import com.sorametca.yet_another_launcher.fragments.ProfilesFragment
+import com.sorametca.yet_another_launcher.view.settings.AboutFragment
+import com.sorametca.yet_another_launcher.view.settings.AppDrawerSettingsFragment
+import com.sorametca.yet_another_launcher.view.settings.AppearanceFragment
+import com.sorametca.yet_another_launcher.view.settings.GesturesFragment
+import com.sorametca.yet_another_launcher.view.settings.HiddenApplicationsFragment
+import com.sorametca.yet_another_launcher.view.settings.ProfilesFragment
 import kotlinx.coroutines.launch
 
 // TODO replace static options with recyclerview
