@@ -37,7 +37,6 @@ import com.sorametca.yet_another_launcher.GestureAction
 import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.SettingsRepository
 import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
-import com.sorametca.yet_another_launcher.adapter.DragAppData
 import com.sorametca.yet_another_launcher.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.dataStore
@@ -46,11 +45,7 @@ import com.sorametca.yet_another_launcher.fragments.HomeScreenSettingsFragment
 import com.sorametca.yet_another_launcher.interfaces.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppObject
 import com.sorametca.yet_another_launcher.model.PagerObject
-import com.sorametca.yet_another_launcher.settings.AppDrawerStyle
 import com.sorametca.yet_another_launcher.settings.AppLaunchAnim
-import com.sorametca.yet_another_launcher.swipes.OnSwipeInterface
-import com.sorametca.yet_another_launcher.swipes.OnSwipeListener
-import com.sorametca.yet_another_launcher.view.LauncherWidgetView
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import com.sorametca.yet_another_launcher.interfaces.OnSwipeInterface
@@ -68,9 +63,8 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     private var appLaunchAnim = AppLaunchAnim.FADE_IN
 
-    lateinit var appList: ArrayList<AppObject>
-
     lateinit var appList: ArrayList<LauncherItem?>
+
     private lateinit var validator: SettingsRepository
     private var hideStatusBar = false
 

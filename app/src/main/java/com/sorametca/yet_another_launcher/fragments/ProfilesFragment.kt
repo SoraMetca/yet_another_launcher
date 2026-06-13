@@ -11,11 +11,18 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.dataStore // Your global DataStore
+import com.sorametca.yet_another_launcher.activity.MainActivity
+import com.sorametca.yet_another_launcher.dataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -25,8 +32,6 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.sorametca.yet_another_launcher.activity.MainActivity
-import kotlinx.coroutines.launch
 
 class ProfilesFragment : Fragment() {
 
@@ -37,20 +42,6 @@ class ProfilesFragment : Fragment() {
     private lateinit var autoExportSwitch: Switch
     private lateinit var automaticExportSwitch: Switch
     private lateinit var exportStatusText: TextView
-
-    // 1. SAF Launcher for Exporting (creates the "Save As..." system dialog)
-    private val exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) {
-            exportProfileData(uri)
-        }
-    }
-
-    // 2. SAF Launcher for Importing (creates the "Open File..." system dialog)
-    private val importLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            importProfileData(uri)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -86,13 +77,14 @@ class ProfilesFragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch {
                 repository.saveAutoExportToggle(requireContext(), isChecked)
             }
-        automaticExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            // TODO: Save this preference to your DataStore so the app remembers it
-            Log.d("option clicked", (if (isChecked) "enabled" else "disabled"))
+            automaticExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+                // TODO: Save this preference to your DataStore so the app remembers it
+                Log.d("option clicked", (if (isChecked) "enabled" else "disabled"))
+            }
         }
     }
 
-    private fun exportProfileData(uri: Uri) {
+    fun exportProfileData(uri: Uri) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val preferencesMap = requireContext().dataStore.data.first().asMap()
@@ -114,8 +106,11 @@ class ProfilesFragment : Fragment() {
                 }
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Profile Exported!", Toast.LENGTH_SHORT).show()
-                    val dateStr = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(timestamp))
+                    Toast.makeText(requireContext(), "Profile Exported!", Toast.LENGTH_SHORT)
+                        .show()
+                    val dateStr = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(
+                        Date(timestamp)
+                    )
                     exportStatusText.text = "Most recent export successful on $dateStr"
                 }
 
@@ -128,7 +123,7 @@ class ProfilesFragment : Fragment() {
         }
     }
 
-    private fun importProfileData(uri: Uri) {
+    fun importProfileData(uri: Uri) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val jsonString = requireContext().contentResolver.openInputStream(uri)
@@ -141,7 +136,11 @@ class ProfilesFragment : Fragment() {
 
                 if (schemaVersion == -1 || schemaVersion > 1) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "Incompatible backup version.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "Incompatible backup version.",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                     return@launch
                 }
@@ -153,13 +152,17 @@ class ProfilesFragment : Fragment() {
                 requireContext().dataStore.edit { mutablePreferences ->
                     while (keys.hasNext()) {
                         val keyName = keys.next()
-                        val value = preferencesJson.get(keyName)
+                        when (val value = preferencesJson.get(keyName)) {
+                            is String -> mutablePreferences[stringPreferencesKey(keyName)] =
+                                value
 
-                        when (value) {
-                            is String -> mutablePreferences[stringPreferencesKey(keyName)] = value
                             is Int -> mutablePreferences[intPreferencesKey(keyName)] = value
-                            is Boolean -> mutablePreferences[booleanPreferencesKey(keyName)] = value
-                            is Double -> mutablePreferences[floatPreferencesKey(keyName)] = value.toFloat()
+                            is Boolean -> mutablePreferences[booleanPreferencesKey(keyName)] =
+                                value
+
+                            is Double -> mutablePreferences[floatPreferencesKey(keyName)] =
+                                value.toFloat()
+
                             is Long -> mutablePreferences[longPreferencesKey(keyName)] = value
                             is JSONArray -> {
                                 val stringSet = mutableSetOf<String>()
@@ -173,15 +176,40 @@ class ProfilesFragment : Fragment() {
                 }
 
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Profile Imported Successfully!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Profile Imported Successfully!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
 
             } catch (e: Exception) {
                 e.printStackTrace()
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Import Failed. File may be corrupted.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Import Failed. File may be corrupted.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
+
+
+    // 1. SAF Launcher for Exporting (creates the "Save As..." system dialog)
+    private val exportLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+            if (uri != null) {
+                exportProfileData(uri)
+            }
+        }
+
+    // 2. SAF Launcher for Importing (creates the "Open File..." system dialog)
+    private val importLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                importProfileData(uri)
+            }
+        }
 }
