@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
 
     lateinit var appList: ArrayList<LauncherItem?>
+
     private lateinit var validator: SettingsRepository
     private var hideStatusBar = false
 
