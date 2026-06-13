@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -51,6 +52,8 @@ class ProfilesFragment : Fragment() {
         importProfiles = view.findViewById(R.id.import_profiles)
 
         exportStatusText = view.findViewById(R.id.export_status)
+        exportStatusText.isVisible = false
+
         manualExport.setOnClickListener { _: View? ->
             val dateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
             exportLauncher.launch("YAL_Profile_$dateString.json")
