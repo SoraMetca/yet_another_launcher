@@ -2,12 +2,9 @@ package com.sorametca.yet_another_launcher.view.settings
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
-import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,7 +18,6 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.settings.dataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -32,17 +28,13 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.collections.iterator
 
 class ProfilesFragment : Fragment() {
 
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
-
     private lateinit var manualExport: TextView
     private lateinit var importProfiles: TextView
-    private lateinit var autoExportSwitch: Switch
-    private lateinit var automaticExportSwitch: Switch
     private lateinit var exportStatusText: TextView
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,13 +49,7 @@ class ProfilesFragment : Fragment() {
 
         manualExport = view.findViewById(R.id.manual_export)
         importProfiles = view.findViewById(R.id.import_profiles)
-        autoExportSwitch = view.findViewById(R.id.automatic_export_switch)
-        viewLifecycleOwner.lifecycleScope.launch {
-            repository.getAutoExportToggle(requireContext()).collect { state ->
-                autoExportSwitch.isChecked = state
-            }
-        }
-        automaticExportSwitch = view.findViewById(R.id.automatic_export_switch)
+
         exportStatusText = view.findViewById(R.id.export_status)
         manualExport.setOnClickListener { _: View? ->
             val dateString = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -71,17 +57,6 @@ class ProfilesFragment : Fragment() {
         }
         importProfiles.setOnClickListener { _: View? ->
             importLauncher.launch(arrayOf("application/json"))
-        }
-
-        autoExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-
-            viewLifecycleOwner.lifecycleScope.launch {
-                repository.saveAutoExportToggle(requireContext(), isChecked)
-            }
-            automaticExportSwitch.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-                // TODO: Save this preference to your DataStore so the app remembers it
-                Log.d("option clicked", (if (isChecked) "enabled" else "disabled"))
-            }
         }
     }
 

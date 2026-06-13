@@ -10,15 +10,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appSortRepository
 import kotlinx.coroutines.launch
 
 class SortAppsFragment : Fragment() {
 
     private var sortId = 0
 
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
     private val viewModel: AppDrawerViewModel by activityViewModels()
 
     private lateinit var radioCustom: RadioButton
@@ -41,7 +40,7 @@ class SortAppsFragment : Fragment() {
         setupRadioListener()
 
         lifecycleScope.launch {
-            sortId = repository.getSavedSortMethodId(requireContext())
+            sortId = appSortRepository.getSavedSortMethodId(requireContext())
             radioGroup.check(sortId)
         }
     }
@@ -54,7 +53,7 @@ class SortAppsFragment : Fragment() {
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
             lifecycleScope.launch {
-                repository.saveSortMethodId(requireContext(), checkedId)
+                appSortRepository.saveSortMethodId(requireContext(), checkedId)
             }
         }
     }

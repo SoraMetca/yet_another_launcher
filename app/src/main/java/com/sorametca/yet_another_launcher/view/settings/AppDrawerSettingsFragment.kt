@@ -10,15 +10,13 @@ import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appDrawerStyleRepository
 import com.sorametca.yet_another_launcher.settings.options.AppDrawerStyle
 import kotlinx.coroutines.launch
 
 class AppDrawerSettingsFragment : Fragment() {
 
     val options = AppDrawerStyle.entries.map { it.displayName }
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
-
     private lateinit var drawerStyleSpinner: Spinner
 
 
@@ -36,7 +34,7 @@ class AppDrawerSettingsFragment : Fragment() {
 
         // set position of spinner on launch
         viewLifecycleOwner.lifecycleScope.launch {
-            repository.getDrawerStyle(requireContext()).collect { style ->
+            appDrawerStyleRepository.getDrawerStyle(requireContext()).collect { style ->
                 val position = AppDrawerStyle.entries.indexOf(style)
                 drawerStyleSpinner.setSelection(position)
             }
@@ -59,7 +57,7 @@ class AppDrawerSettingsFragment : Fragment() {
                 val style = AppDrawerStyle.entries[position]
 
                 viewLifecycleOwner.lifecycleScope.launch {
-                    repository.saveDrawerStyle(requireContext(), style)
+                    appDrawerStyleRepository.saveDrawerStyle(requireContext(), style)
                 }
             }
 

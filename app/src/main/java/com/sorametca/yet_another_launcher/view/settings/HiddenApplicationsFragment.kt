@@ -7,23 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ListView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.settings.repository.SettingsRepository
 import com.sorametca.yet_another_launcher.core.adapter.HiddenAppAdapter
-import com.sorametca.yet_another_launcher.settings.dataStore
-import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
 import com.sorametca.yet_another_launcher.model.AppObject
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.hiddenAppRepository
 import kotlinx.coroutines.launch
 
 class HiddenApplicationsFragment : Fragment() {
 
-    private lateinit var hiddenAppAdapter: HiddenAppAdapter
-    private lateinit var settingsRepository: SettingsRepository
-    private val viewModel: AppDrawerViewModel by activityViewModels()
-
     private lateinit var listView: ListView
+    private lateinit var hiddenAppAdapter: HiddenAppAdapter
 
 
     override fun onCreateView(
@@ -40,11 +34,8 @@ class HiddenApplicationsFragment : Fragment() {
 
         listView = view.findViewById(R.id.hidden_apps_list_view)
 
-        settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
-
-
         viewLifecycleOwner.lifecycleScope.launch {
-            settingsRepository.hiddenApps.collect { hidden ->
+            hiddenAppRepository.hiddenApps.collect { hidden ->
                 updateHiddenList(hidden)
             }
         }
@@ -70,7 +61,7 @@ class HiddenApplicationsFragment : Fragment() {
             ArrayList(hiddenApps)
         ) { app ->
             viewLifecycleOwner.lifecycleScope.launch {
-                settingsRepository.unhideApp(app.packageName)
+                hiddenAppRepository.unhideApp(app.packageName)
             }
         }
 

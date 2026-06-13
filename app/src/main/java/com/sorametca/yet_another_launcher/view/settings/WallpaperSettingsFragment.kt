@@ -13,9 +13,10 @@ import com.sorametca.yet_another_launcher.activity.MainActivity
 
 class WallpaperSettingsFragment : Fragment(R.layout.fragment_wallpaper_settings) {
 
-    private val filePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { handleSelectedWallpaper(it) }
-    }
+    private val filePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            uri?.let { handleSelectedWallpaper(it) }
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

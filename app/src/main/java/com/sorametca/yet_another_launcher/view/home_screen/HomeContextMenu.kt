@@ -4,17 +4,19 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.fragment.app.Fragment
 import com.sorametca.yet_another_launcher.R
 
-class HomeContextMenu(private var packageName : String) : Fragment() {
-    private lateinit var removeShortcutButton : LinearLayout
-    private lateinit var appInfoButton : LinearLayout
+class HomeContextMenu(private var packageName: String) : Fragment() {
+
+    private lateinit var removeShortcutButton: LinearLayout
+    private lateinit var appInfoButton: LinearLayout
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -36,11 +38,11 @@ class HomeContextMenu(private var packageName : String) : Fragment() {
         appInfoButton.setOnClickListener { appInfoButton(packageName) }
     }
 
-    private fun removeShortcut(packageName : String){
+    private fun removeShortcut(packageName: String) {
 
     }
 
-    private fun appInfoButton(packageName : String){ // TODO remove dupe functions from AppDrawerContextMenu
+    private fun appInfoButton(packageName: String) { // TODO remove dupe functions from AppDrawerContextMenu
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         intent.data = Uri.fromParts("package", packageName, null)
         requireContext().startActivity(intent)

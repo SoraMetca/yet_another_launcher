@@ -7,25 +7,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
-import com.sorametca.yet_another_launcher.R
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.sorametca.yet_another_launcher.R
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.view.settings.WallpaperSettingsFragment
 
 class HomeScreenSettingsFragment : BottomSheetDialogFragment() {
 
-    private lateinit var wallpaperOption : LinearLayout
-    private lateinit var widgetsOption : LinearLayout
-    private lateinit var addFolder : LinearLayout
-    private lateinit var settingsButton : ImageButton
+    private lateinit var wallpaperOption: LinearLayout
+    private lateinit var widgetsOption: LinearLayout
+    private lateinit var settingsButton: ImageButton
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.home_screen_settings_fragment,
-            container, false)
+        return inflater.inflate(
+            R.layout.home_screen_settings_fragment,
+            container, false
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -39,10 +41,8 @@ class HomeScreenSettingsFragment : BottomSheetDialogFragment() {
                 .commit()
         }
         widgetsOption = view.findViewById(R.id.widgets_option)
-        addFolder = view.findViewById(R.id.add_folder_option)
         settingsButton = view.findViewById(R.id.settings_button)
         widgetsOption.setOnClickListener { /* TODO */ }
-        addFolder.setOnClickListener { /* TODO */ }
         settingsButton.setOnClickListener {
             startActivity(Intent(requireContext(), SettingsActivity::class.java))
         }

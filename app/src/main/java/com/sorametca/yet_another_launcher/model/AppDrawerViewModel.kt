@@ -5,19 +5,20 @@ import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appSortRepository
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.hiddenAppRepository
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.labelRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-class AppDrawerViewModel() : ViewModel() {
+class AppDrawerViewModel : ViewModel() {
 
     private val _appList = MutableStateFlow<List<AppObject>>(emptyList())
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
-    val labelsFlow = repository.labelsFlow
-    val hiddenApps: Flow<Set<String>> = repository.hiddenApps
+    val labelsFlow = labelRepository.labelsFlow
+    val hiddenApps: Flow<Set<String>> = hiddenAppRepository.hiddenApps
     val appList = _appList.asStateFlow()
     private val _reorderMode = MutableStateFlow(false)
     val reorderMode = _reorderMode.asStateFlow()
@@ -46,9 +47,9 @@ class AppDrawerViewModel() : ViewModel() {
 
             combine(
                 installedAppsFlow,
-                repository.hiddenApps,
-                repository.sortType,
-                repository.customOrderFlow,
+                hiddenApps,
+                appSortRepository.sortType,
+                appSortRepository.customOrderFlow,
                 _reorderMode
             ) { installed, hidden, sortType, customOrder, reorderMode ->
 
@@ -110,13 +111,7 @@ class AppDrawerViewModel() : ViewModel() {
 
     fun hideApp(packageName: String?) {
         viewModelScope.launch {
-            repository.hideApp(packageName)
-        }
-    }
-
-    fun unhideApp(packageName: String) {
-        viewModelScope.launch {
-            repository.unhideApp(packageName)
+            hiddenAppRepository.hideApp(packageName)
         }
     }
 }

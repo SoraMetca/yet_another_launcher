@@ -1,7 +1,6 @@
 package com.sorametca.yet_another_launcher.view.settings
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +10,11 @@ import android.widget.Spinner
 import android.widget.Switch
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appLaunchAnimRepository
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.statusBarRepository
 import com.sorametca.yet_another_launcher.settings.options.AppLaunchAnim
 import kotlinx.coroutines.launch
 
@@ -21,10 +22,8 @@ class AppearanceFragment : Fragment() {
 
     val options = AppLaunchAnim.entries.map { it.displayName }
 
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
-
-    private lateinit var appAnimSpinner : Spinner
-    private lateinit var statusBarSwitch : Switch
+    private lateinit var appAnimSpinner: Spinner
+    private lateinit var statusBarSwitch: Switch
 
 
     override fun onCreateView(
@@ -42,7 +41,7 @@ class AppearanceFragment : Fragment() {
 
         // set position of spinner on launch
         viewLifecycleOwner.lifecycleScope.launch {
-            repository.getLaunchAnim(requireContext()).collect { anim ->
+            appLaunchAnimRepository.getLaunchAnim(requireContext()).collect { anim ->
                 val position = AppLaunchAnim.entries.indexOf(anim)
                 appAnimSpinner.setSelection(position)
             }
@@ -50,7 +49,7 @@ class AppearanceFragment : Fragment() {
 
         // set position of status bar toggle
         viewLifecycleOwner.lifecycleScope.launch {
-            repository.getStatusBarToggle(requireContext()).collect { state ->
+            statusBarRepository.getStatusBarToggle(requireContext()).collect { state ->
                 statusBarSwitch.isChecked = state
             }
         }
@@ -77,7 +76,7 @@ class AppearanceFragment : Fragment() {
                 val anim = AppLaunchAnim.entries[position]
 
                 viewLifecycleOwner.lifecycleScope.launch {
-                    repository.saveLaunchAnim(requireContext(), anim)
+                    appLaunchAnimRepository.saveLaunchAnim(requireContext(), anim)
                 }
             }
 
@@ -93,7 +92,7 @@ class AppearanceFragment : Fragment() {
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                repository.saveStatusBarToggle(requireContext(), isChecked)
+                statusBarRepository.saveStatusBarToggle(requireContext(), isChecked)
             }
         }
     }

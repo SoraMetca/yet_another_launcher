@@ -18,11 +18,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.settings.repository.SettingsRepository
 import com.sorametca.yet_another_launcher.core.adapter.AppAdapter
-import com.sorametca.yet_another_launcher.settings.dataStore
-import com.sorametca.yet_another_launcher.model.LauncherItem
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
+import com.sorametca.yet_another_launcher.model.LauncherItem
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.labelRepository
 import kotlinx.coroutines.launch
 
 class AppDrawerContextMenu(private val appList: ArrayList<LauncherItem?>) : Fragment() {
@@ -31,7 +30,6 @@ class AppDrawerContextMenu(private val appList: ArrayList<LauncherItem?>) : Frag
 
     private lateinit var adapter: AppAdapter
     private val viewModel: AppDrawerViewModel by activityViewModels()
-    private lateinit var settingsRepository: SettingsRepository
 
     private lateinit var uninstallButton: ImageButton
     private lateinit var renameAppButton: ImageButton
@@ -58,7 +56,6 @@ class AppDrawerContextMenu(private val appList: ArrayList<LauncherItem?>) : Frag
         setupDismissOnOutsideClick(view)
 
         adapter = AppAdapter(requireContext(), appList)
-        settingsRepository = SettingsRepository(requireContext().dataStore, lifecycleScope)
 
         packageName = arguments?.getString("packageName")
 
@@ -87,7 +84,7 @@ class AppDrawerContextMenu(private val appList: ArrayList<LauncherItem?>) : Frag
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val currentLabel = settingsRepository.getLabel(pkg).orEmpty()
+            val currentLabel = labelRepository.getLabel(pkg).orEmpty()
 
             input.setText(currentLabel)
             input.setSelection(currentLabel.length)
@@ -101,9 +98,9 @@ class AppDrawerContextMenu(private val appList: ArrayList<LauncherItem?>) : Frag
                         val newLabel = input.text.toString().trim()
 
                         if (newLabel.isNotEmpty()) {
-                            settingsRepository.setLabel(pkg, newLabel)
+                            labelRepository.setLabel(pkg, newLabel)
                         } else {
-                            settingsRepository.removeLabel(pkg)
+                            labelRepository.removeLabel(pkg)
                         }
 
                         parentFragmentManager.popBackStack()

@@ -9,7 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.statusBarRepository
 import com.sorametca.yet_another_launcher.view.settings.AboutFragment
 import com.sorametca.yet_another_launcher.view.settings.AppDrawerSettingsFragment
 import com.sorametca.yet_another_launcher.view.settings.AppearanceFragment
@@ -49,7 +49,7 @@ class SettingsActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.statusBarToggle.collect { shouldHide ->
+                statusBarRepository.statusBarToggle.collect { shouldHide ->
                     hideStatusBar = shouldHide
 
                     val controller =

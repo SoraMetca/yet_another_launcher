@@ -25,13 +25,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.textfield.TextInputEditText
 import com.sorametca.yet_another_launcher.R
-import com.sorametca.yet_another_launcher.activity.MainActivity
 import com.sorametca.yet_another_launcher.activity.SettingsActivity
 import com.sorametca.yet_another_launcher.core.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.core.adapter.DragAppData
-import com.sorametca.yet_another_launcher.model.LauncherItem
 import com.sorametca.yet_another_launcher.core.swipes.OnSwipeInterface
 import com.sorametca.yet_another_launcher.model.AppDrawerViewModel
+import com.sorametca.yet_another_launcher.model.LauncherItem
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appDrawerStyleRepository
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appSortRepository
 import com.sorametca.yet_another_launcher.settings.options.AppDrawerStyle
 import kotlinx.coroutines.launch
 
@@ -39,10 +40,10 @@ class AppDrawerFragment(var appList: ArrayList<LauncherItem?>) : Fragment(), OnS
 
     private var backPressedCallback: OnBackPressedCallback? = null
 
-    private val viewModel: AppDrawerViewModel by activityViewModels()
+
     private lateinit var adapter: AppAdapter
     private lateinit var appChangeReceiver: BroadcastReceiver
-    private val repository = MainActivity.RepositoryProvider.settingsRepository
+    private val viewModel: AppDrawerViewModel by activityViewModels()
 
 
     private lateinit var applyButton: Button
@@ -82,7 +83,7 @@ class AppDrawerFragment(var appList: ArrayList<LauncherItem?>) : Fragment(), OnS
 
         applyButton.setOnClickListener {
             lifecycleScope.launch {
-                repository.saveCustomOrder(
+                appSortRepository.saveCustomOrder(
                     viewModel.appList.value
                 )
 
@@ -95,10 +96,11 @@ class AppDrawerFragment(var appList: ArrayList<LauncherItem?>) : Fragment(), OnS
         }
 
         lifecycleScope.launch {
-            repository.getDrawerStyle(requireContext())
+            appDrawerStyleRepository.getDrawerStyle(requireContext())
                 .collect { style ->
                     adapter.setDrawerStyle(style)
-                    if (style == AppDrawerStyle.GRID) mDrawerGridView.numColumns = 4 else mDrawerGridView.numColumns = 1
+                    if (style == AppDrawerStyle.GRID) mDrawerGridView.numColumns =
+                        4 else mDrawerGridView.numColumns = 1
                     adapter.notifyDataSetChanged()
                 }
         }

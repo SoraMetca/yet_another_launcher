@@ -35,8 +35,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
 import com.sorametca.yet_another_launcher.settings.options.GestureAction
 import com.sorametca.yet_another_launcher.R
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.appLaunchAnimRepository
 import com.sorametca.yet_another_launcher.settings.repository.SettingsRepository
-import com.sorametca.yet_another_launcher.activity.MainActivity.RepositoryProvider.settingsRepository
 import com.sorametca.yet_another_launcher.core.adapter.AppAdapter
 import com.sorametca.yet_another_launcher.core.adapter.ViewPagerAdapter
 import com.sorametca.yet_another_launcher.settings.dataStore
@@ -54,14 +54,18 @@ import com.sorametca.yet_another_launcher.core.swipes.OnSwipeListener
 import com.sorametca.yet_another_launcher.core.widget.LauncherWidgetView
 import com.sorametca.yet_another_launcher.core.wallpaper.AutoFitImageView
 import com.sorametca.yet_another_launcher.core.wallpaper.AutoFitVideoView
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider
 import java.util.Collections
+import com.sorametca.yet_another_launcher.settings.RepositoryProvider.statusBarRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+
 
 class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
     // Class variables
     private val homeAppList = ArrayList<AppObject>()
-
-    private var appLaunchAnim = AppLaunchAnim.FADE_IN
 
     lateinit var appList: ArrayList<LauncherItem?>
 
@@ -133,9 +137,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         }
     }
 
-    object RepositoryProvider {
-        lateinit var settingsRepository: SettingsRepository
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -160,13 +162,13 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
         main.isClickable = true
         main.isFocusable = true
 
-        swipeListener = object : OnSwipeListener(this, this) {}
+        RepositoryProvider.initialize(dataStore, scope = CoroutineScope(SupervisorJob() + Dispatchers.IO))
 
-        settingsRepository = SettingsRepository(dataStore, lifecycleScope)
+        swipeListener = object : OnSwipeListener(this, this) {}
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.statusBarToggle.collect { shouldHide ->
+                statusBarRepository.statusBarToggle.collect { shouldHide ->
                     hideStatusBar = shouldHide
 
                     val controller =
@@ -402,9 +404,9 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     override fun onDoubleTap() {
-        if (validator.gestures["doubleTap"] == GestureAction.openHomeScreenSettings.ordinal) {
+        if (validator.gestures["doubleTap"] == GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal) {
             openHomeScreenSettings()
-        } else if (validator.gestures["doubleTap"] == GestureAction.openAppList.ordinal) {
+        } else if (validator.gestures["doubleTap"] == GestureAction.OPEN_APP_DRAWER.ordinal) {
             openAppList()
         }
     }
@@ -427,9 +429,9 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
     }
 
     override fun onSwipeToTop() {
-        if (validator.gestures["swipeToTop"] == GestureAction.openAppList.ordinal) {
+        if (validator.gestures["swipeToTop"] == GestureAction.OPEN_APP_DRAWER.ordinal) {
             openAppList()
-        } else if (validator.gestures["swipeToTop"] == GestureAction.openHomeScreenSettings.ordinal) {
+        } else if (validator.gestures["swipeToTop"] == GestureAction.OPEN_HOME_SCREEN_SETTINGS.ordinal) {
             openHomeScreenSettings()
         }
     }
@@ -438,7 +440,7 @@ class MainActivity : AppCompatActivity(), OnSwipeInterface {
 
          lifecycleScope.launch {
 
-             val anim = settingsRepository
+             val anim = appLaunchAnimRepository
                  .getLaunchAnim(this@MainActivity)
                  .first()
 
